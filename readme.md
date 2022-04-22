@@ -1,8 +1,14 @@
-# Logseq Plugin Template React
+# Logseq Readwise Plugin
 
-## Features
+# Steps - dev
 
-- plug & play boilerplate with properly defined GitHub action defaults
-- develop with HMR, empowered by lightning fast Vite ⚡ with [vite-logseq-plugin](https://github.com/pengx17/vite-plugin-logseq)
-- windicss for styling
-- pnpm
+```bash
+$ pnpm install
+$ pnpm run dev
+```
+
+# Steps - build
+
+```
+$ pnpm run build
+```
