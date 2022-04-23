@@ -45,13 +45,13 @@ function getLogseqClientID() {
     }
 }
 
+// @ts-ignore
 export async function getUserAuthToken(attempt = 0) {
-    let uuid = getLogseqClientID()
-
+    const uuid = getLogseqClientID()
     if (attempt === 0) {
         window.open(`${baseURL}/api_auth?token=${uuid}&service=logseq`)
     }
-
+    await new Promise(r => setTimeout(r, 2000)) // wait until have data on cache
     let response, data
     try {
         response = await window.fetch(
@@ -75,8 +75,8 @@ export async function getUserAuthToken(attempt = 0) {
             return
         }
         console.log(`Readwise Official plugin: didn't get token data, retrying (attempt ${attempt + 1})`)
-        await new Promise(resolve => setTimeout(resolve, 1000))
-        await getUserAuthToken(attempt + 1)
+        await new Promise(r => setTimeout(r, 1000))
+        return await getUserAuthToken(attempt + 1)
     }
 }
 
@@ -101,6 +101,7 @@ async function createPage(title: string, blocks: Array<IBatchBlock>) {
         createFirstBlock: true,
         redirect: false
     })
+    // check if it was correctly created?
     const pageBlocksTree = await logseq.Editor.getPageBlocksTree(title)
     await new Promise(r => setTimeout(r, 1000))
     if (pageBlocksTree.length === 1) { // the first one is the property! maybe a bug there?
@@ -220,17 +221,17 @@ async function downloadArchive(exportID: number): Promise<void> {
                 const page = await logseq.Editor.getPage(bookCreate.title)
                 if (page !== null) {
                     // page exists
-                    const convertedBook = convertReadwiseToIBatchBlock(bookUpdate)
-                    if (convertedBook !== undefined) {
-                        await updatePage(page, convertedBook!.children!)
+                    const convertedUpdateBook = convertReadwiseToIBatchBlock(bookUpdate)
+                    if (convertedUpdateBook !== undefined) {
+                        await updatePage(page, convertedUpdateBook!.children!)
                         logseq.App.showMsg(`Updating "${bookUpdate.title}" completed`)
                     }
                 } else {
-                    const convertedBook = convertReadwiseToIBatchBlock(bookCreate)
-                    if (convertedBook !== undefined) {
-                        await createPage(bookCreate.title, convertedBook!.children!)
+                    const convertedNewBook = convertReadwiseToIBatchBlock(bookCreate)
+                    if (convertedNewBook !== undefined) {
+                        await createPage(bookCreate.title, convertedNewBook!.children!)
                         logseq.App.showMsg(`Creating "${bookCreate.title}" completed`)
-                        booksIDsMap[book.title] = bookId
+                        booksIDsMap[bookCreate.title] = bookId
                     }
                 }
             }
@@ -289,11 +290,13 @@ async function getExportStatus(statusID?: number) {
 }
 
 export async function syncHighlights(auto?: boolean) {
-    const parentDeleted = await logseq.Editor.getPage(parentPageName) === null
-
-    let url = `${baseURL}/api/logseq/init?parentPageDeleted=${parentDeleted}`
+    let url = `${baseURL}/api/logseq/init?auto=${auto}`
     if (auto) {
-        url += `&auto=${auto}`
+        await new Promise(r => setTimeout(r, 3000))
+    }
+    const parentDeleted = await logseq.Editor.getPage(parentPageName) === null
+    if (parentDeleted) {
+        url += `&parentPageDeleted=${parentDeleted}`
     }
     let response, data: ExportRequestResponse
     try {
@@ -336,14 +339,14 @@ function main() {
         {
             key: "isLoadAuto",
             type: "boolean",
-            default: true,
+            default: false,
             title: "Sync automatically when Logseq opens",
             description: "If enabled, Readwise will automatically resync with Logseq each time you open the app",
         },
         {
             key: "isResyncDeleted",
             type: "boolean",
-            default: true,
+            default: false,
             title: "Resync deleted pages",
             description: "If enabled, you can refresh individual items by deleting the page in Logseq and initiating a resync",
         }
@@ -393,6 +396,9 @@ function main() {
   </a>
 `,
     })
+    if (logseq.settings!.readwiseAccessToken && logseq.settings!.isLoadAuto) {
+        syncHighlights(true).then(() => console.log('Auto sync loaded'))
+    }
 }
 
 // @ts-expect-error

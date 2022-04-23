@@ -15,7 +15,7 @@ function App() {
     const onClickOutside = () => window.logseq.hideMainUI()
 
     async function connectToReadwise() {
-        let accessToken = await getUserAuthToken()
+        const accessToken = await getUserAuthToken()
         if (accessToken !== undefined) {
             logseq.updateSettings({
                 readwiseAccessToken: accessToken
@@ -44,7 +44,7 @@ function App() {
         return () => {
             document.removeEventListener("click", handleClickOutside, true)
         }
-    }, [onClickOutside])
+    }, [])
 
     if (visible) {
         return (
@@ -144,7 +144,7 @@ function App() {
                                     ></label>
                                 </div>
                                 <label htmlFor="isResyncDeleted" className="text-m text-gray-700">
-                                    Resync deleted files
+                                    Resync deleted pages
                                 </label>
                                 <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
                                     If enabled, you can refresh individual items by deleting the file
