@@ -53,7 +53,7 @@ function App() {
                     <div className="flex place-content-between">
                         <img src={logo} className="h-5" alt="readwise logo"/>
                         <button type="button" onClick={() => window.logseq.hideMainUI()}>
-                            X
+                            x
                         </button>
                     </div>
                     <hr className="w-full mt-3 mb-3"/>

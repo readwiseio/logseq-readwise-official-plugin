@@ -7,14 +7,14 @@ import App from "./App"
 
 import {logseq as PL} from "../package.json"
 import {triggerIconName} from "./utils"
-import {IBatchBlock, PageEntity, SettingSchemaDesc} from "@logseq/libs/dist/LSPlugin"
+import {IBatchBlock, PageEntity, PageIdentity, SettingSchemaDesc} from "@logseq/libs/dist/LSPlugin"
 
 // @ts-expect-error
 const css = (t, ...args) => String.raw(t, ...args)
 const magicKey = `__${PL.id}__loaded__`
 
 const isDev = process.env.NODE_ENV === "development"
-const baseURL = "https://local.readwise.io:8000"
+const baseURL = isDev ? "https://local.readwise.io:8000" : "https://readwise.io"
 const parentPageName = "Readwise"
 
 interface ReadwiseBlock {
@@ -83,17 +83,15 @@ export async function getUserAuthToken(attempt = 0) {
 
 function convertReadwiseToIBatchBlock(obj: ReadwiseBlock) {
     // we ignore the first one (which we can consider as the block title)
-    if (obj.string !== undefined || true) {
-        const block: IBatchBlock = {
-            content: obj.string,
-        }
-        if (obj.children !== undefined) {
-            block.children = obj.children.map(convertReadwiseToIBatchBlock).filter(
-                (b): b is IBatchBlock => b !== undefined
-            )
-        }
-        return block
+    const block: IBatchBlock = {
+        content: obj.string,
     }
+    if (obj.children !== undefined) {
+        block.children = obj.children.map(convertReadwiseToIBatchBlock).filter(
+            (b): b is IBatchBlock => b !== undefined
+        )
+    }
+    return block
 }
 
 async function createPage(title: string, blocks: Array<IBatchBlock>) {
@@ -147,7 +145,7 @@ function handleSyncError(msg: string) {
     logseq.updateSettings({
         lastSyncFailed: true
     })
-    logseq.App.showMsg(msg, "error");
+    logseq.App.showMsg(msg, "error")
 }
 
 function clearSettingsAfterRun() {
@@ -157,7 +155,7 @@ function clearSettingsAfterRun() {
     })
 }
 
-function handleSyncSuccess(msg: string = "Synced", exportID?: number) {
+function handleSyncSuccess(msg = "Synced", exportID?: number) {
     clearSettingsAfterRun()
     logseq.updateSettings({
         lastSyncFailed: false,
@@ -166,6 +164,33 @@ function handleSyncSuccess(msg: string = "Synced", exportID?: number) {
     if (exportID) {
         logseq.updateSettings({
             lastSavedStatusID: exportID
+        })
+    }
+    logseq.App.showMsg(msg)
+}
+
+type BookToExport = [number, string]
+
+async function refreshBookExport(books: Array<BookToExport>) {
+    let response, bookIds: number[]
+    try {
+        bookIds = books.map((b) => b[0])
+        response = await window.fetch(
+            `${baseURL}/api/refresh_book_export`, {
+                headers: {...getAuthHeaders(), 'Content-Type': 'application/json'},
+                method: "POST",
+                body: JSON.stringify({exportTarget: 'logseq', books: bookIds})
+            }
+        )
+    } catch (e) {
+        console.log("Readwise Official plugin: fetch failed in refreshBookExport: ", e);
+    }
+    if (response && response.ok) {
+        const booksIDsMap = logseq.settings!.booksIDsMap || {}
+        const booksIDsMapAsArray = Object.entries(booksIDsMap)
+        logseq.updateSettings({
+            // @ts-ignore
+            booksIDsMap: Object.fromEntries(booksIDsMapAsArray.filter((b) => !(b[1] in bookIds)))
         })
     }
 }
@@ -192,7 +217,7 @@ async function acknowledgeSyncCompleted() {
 }
 
 async function downloadArchive(exportID: number): Promise<void> {
-    let artifactURL = `${baseURL}/api/download_artifact/${exportID}`
+    const artifactURL = `${baseURL}/api/download_artifact/${exportID}`
     if (exportID <= logseq.settings!.lastSavedStatusID) {
         console.log(`Readwise Official plugin: Already saved data from export ${exportID}`)
         handleSyncSuccess()
@@ -208,10 +233,10 @@ async function downloadArchive(exportID: number): Promise<void> {
     } catch (e) {
         console.log("Readwise Official plugin: fetch failed in downloadArchive: ", e)
     }
-    let booksIDsMap = logseq.settings!.booksIDsMap || {}
+    const booksIDsMap = logseq.settings!.booksIDsMap || {}
     if (response && response.ok) {
         const responseJSON = await response.json()
-        let books = responseJSON.books
+        const books = responseJSON.books
         if (books.length) {
             logseq.App.showMsg("Saving pages...")
             for (const book of books) {
@@ -252,7 +277,7 @@ async function downloadArchive(exportID: number): Promise<void> {
 
 async function getExportStatus(statusID?: number) {
     const statusId = statusID || logseq.settings!.currentSyncStatusID
-    let url = `${baseURL}/api/get_export_status?exportStatusId=${statusId}`
+    const url = `${baseURL}/api/get_export_status?exportStatusId=${statusId}`
     let response, data: ExportStatusResponse
     try {
         response = await window.fetch(
@@ -280,7 +305,7 @@ async function getExportStatus(statusID?: number) {
             logseq.App.showMsg("Building export...")
         }
         // re-try in 2 secs
-        await new Promise(resolve => setTimeout(resolve, 2000))
+        await new Promise(r => setTimeout(r, 2000))
         await getExportStatus(statusId)
     } else if (SUCCESS_STATUSES.includes(data.taskStatus)) {
         return downloadArchive(statusId)
@@ -397,7 +422,33 @@ function main() {
 `,
     })
     if (logseq.settings!.readwiseAccessToken && logseq.settings!.isLoadAuto) {
-        syncHighlights(true).then(() => console.log('Auto sync loaded'))
+        syncHighlights(true).then(() => console.log('Auto sync loaded.'))
+    }
+
+    if (logseq.settings!.readwiseAccessToken && logseq.settings!.isResyncDeleted) {
+        (new Promise(r => setTimeout(r, 5000))).then(() => {
+                const booksIDsMap = logseq.settings!.booksIDsMap || {}
+                // @ts-ignore
+                Promise.all(Object.keys(booksIDsMap).map((bookName) => {
+                    return new Promise((resolve) => {
+                        logseq.Editor.getPage(bookName).then((res) => {
+                            if (res === null) {
+                                resolve(([booksIDsMap[bookName], bookName]))
+                                console.log(`Page '${bookName}' deleted, going to resync.`)
+                            } else {
+                                resolve(null)
+                            }
+                        })
+                    });
+                })).then(r => {
+                    // @ts-ignore
+                    refreshBookExport(r.filter(b => b !== null)).then(() => {
+                        console.log('Resync deleted done.')
+                    })
+                })
+
+            }
+        )
     }
 }
 
