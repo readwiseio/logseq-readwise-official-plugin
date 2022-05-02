@@ -7,7 +7,7 @@ import App from "./App"
 
 import {logseq as PL} from "../package.json"
 import {triggerIconName} from "./utils"
-import {IBatchBlock, PageEntity, PageIdentity, SettingSchemaDesc} from "@logseq/libs/dist/LSPlugin"
+import {IBatchBlock, PageEntity, SettingSchemaDesc} from "@logseq/libs/dist/LSPlugin"
 
 // @ts-expect-error
 const css = (t, ...args) => String.raw(t, ...args)
@@ -102,13 +102,15 @@ async function createPage(title: string, blocks: Array<IBatchBlock>) {
     // check if it was correctly created?
     const pageBlocksTree = await logseq.Editor.getPageBlocksTree(title)
     await new Promise(r => setTimeout(r, 1000))
-    if (pageBlocksTree.length === 1) { // the first one is the property! maybe a bug there?
+    if (pageBlocksTree.length > 0) { // the first one is the property! maybe a bug there?
         const _first = pageBlocksTree[0]
         await logseq.Editor.insertBatchBlock(_first!.uuid, blocks, {sibling: true})
         await logseq.Editor.removeBlock(_first!.uuid)
+        return true
     } else {
         logseq.App.showMsg(`Error creating "${title}", page not created`, "error")
     }
+    return false
 }
 
 
@@ -254,9 +256,11 @@ async function downloadArchive(exportID: number): Promise<void> {
                 } else {
                     const convertedNewBook = convertReadwiseToIBatchBlock(bookCreate)
                     if (convertedNewBook !== undefined) {
-                        await createPage(bookCreate.title, convertedNewBook!.children!)
-                        logseq.App.showMsg(`Creating "${bookCreate.title}" completed`)
-                        booksIDsMap[bookCreate.title] = bookId
+                        const created = await createPage(bookCreate.title, convertedNewBook!.children!)
+                        if (created) {
+                            logseq.App.showMsg(`Creating "${bookCreate.title}" completed`)
+                            booksIDsMap[bookCreate.title] = bookId
+                        }
                     }
                 }
             }
