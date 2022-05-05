@@ -96,20 +96,27 @@ function convertReadwiseToIBatchBlock(obj: ReadwiseBlock) {
 
 async function createPage(title: string, blocks: Array<IBatchBlock>) {
     const page = await logseq.Editor.createPage(title, {}, {
-        createFirstBlock: true,
+        createFirstBlock: false,
         redirect: false
     })
-    // check if it was correctly created?
-    const pageBlocksTree = await logseq.Editor.getPageBlocksTree(title)
     await new Promise(r => setTimeout(r, 1000))
-    if (pageBlocksTree.length > 0) { // the first one is the property! maybe a bug there?
-        const _first = pageBlocksTree[0]
-        await logseq.Editor.insertBatchBlock(_first!.uuid, blocks, {sibling: true})
-        await logseq.Editor.removeBlock(_first!.uuid)
+    const pageBlocksTree = await logseq.Editor.getPageBlocksTree(title)
+    if (pageBlocksTree.length === 0) {
+        // the correct flow because we are using createFirstBlock: false
+        const firstBlock = await logseq.Editor.insertBlock(page!.name, blocks[0].content, {
+            before: false,
+            isPageBlock: true
+        })
+        await logseq.Editor.insertBatchBlock(firstBlock!.uuid, blocks.slice(1), {sibling: true})
         return true
-    } else {
-        logseq.App.showMsg(`Error creating "${title}", page not created`, "error")
+    } else if (pageBlocksTree.length === 1) {
+            // createFirstBlock: false didn't work and created a block : (
+            const _first = pageBlocksTree[0]
+            await logseq.Editor.insertBatchBlock(_first!.uuid, blocks, {sibling: true})
+            await logseq.Editor.removeBlock(_first!.uuid)
+            return true
     }
+    logseq.App.showMsg(`Error creating "${title}", page not created`, "warning")
     return false
 }
 
