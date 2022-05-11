@@ -13,9 +13,9 @@ import {IBatchBlock, PageEntity, SettingSchemaDesc} from "@logseq/libs/dist/LSPl
 const css = (t, ...args) => String.raw(t, ...args)
 const magicKey = `__${PL.id}__loaded__`
 
-const isDev = process.env.NODE_ENV === "development"
-const baseURL = isDev ? "https://local.readwise.io:8000" : "https://readwise.io"
-const parentPageName = "Readwise"
+export const isDev = process.env.NODE_ENV === "development"
+export const baseURL = isDev ? "https://local.readwise.io:8000" : "https://readwise.io"
+export const parentPageName = "Readwise"
 
 interface ReadwiseBlock {
     string: string,
