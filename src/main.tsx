@@ -250,23 +250,23 @@ async function downloadArchive(exportID: number): Promise<void> {
             logseq.App.showMsg("Saving pages...")
             for (const book of books) {
                 const bookId = book.userBookExportId
-                const bookCreate = book.create
-                const bookUpdate = book.update
-                const page = await logseq.Editor.getPage(bookCreate.title)
-                if (page !== null) {
+                const bookIsUpdate = book.isUpdate
+                const bookData = book.data
+                const page = await logseq.Editor.getPage(bookData.title)
+                if (page !== null && bookIsUpdate) {
                     // page exists
-                    const convertedUpdateBook = convertReadwiseToIBatchBlock(bookUpdate)
+                    const convertedUpdateBook = convertReadwiseToIBatchBlock(bookData)
                     if (convertedUpdateBook !== undefined) {
                         await updatePage(page, convertedUpdateBook!.children!)
-                        logseq.App.showMsg(`Updating "${bookUpdate.title}" completed`)
+                        logseq.App.showMsg(`Updating "${bookData.title}" completed`)
                     }
                 } else {
-                    const convertedNewBook = convertReadwiseToIBatchBlock(bookCreate)
+                    const convertedNewBook = convertReadwiseToIBatchBlock(bookData)
                     if (convertedNewBook !== undefined) {
-                        const created = await createPage(bookCreate.title, convertedNewBook!.children!)
+                        const created = await createPage(bookData.title, convertedNewBook!.children!)
                         if (created) {
-                            logseq.App.showMsg(`Creating "${bookCreate.title}" completed`)
-                            booksIDsMap[bookCreate.title] = bookId
+                            logseq.App.showMsg(`Creating "${bookData.title}" completed`)
+                            booksIDsMap[bookData.title] = bookId
                         }
                     }
                 }
