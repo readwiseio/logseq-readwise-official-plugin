@@ -99,7 +99,7 @@ async function createPage(title: string, blocks: Array<IBatchBlock>) {
         createFirstBlock: false,
         redirect: false
     })
-    await new Promise(r => setTimeout(r, 1000))
+    // await new Promise(r => setTimeout(r, 1000))
     const pageBlocksTree = await logseq.Editor.getPageBlocksTree(title)
     if (pageBlocksTree.length === 0) {
         // the correct flow because we are using createFirstBlock: false
@@ -159,7 +159,6 @@ function handleSyncError(msg: string) {
 
 function clearSettingsAfterRun() {
     logseq.updateSettings({
-        isSyncing: false,
         currentSyncStatusID: 0
     })
 }
@@ -225,12 +224,14 @@ async function acknowledgeSyncCompleted() {
     }
 }
 
-async function downloadArchive(exportID: number): Promise<void> {
+// @ts-ignore
+async function downloadArchive(exportID: number, setNotification?, setIsSyncing?): Promise<void> {
     const artifactURL = `${baseURL}/api/download_artifact/${exportID}`
     if (exportID <= logseq.settings!.lastSavedStatusID) {
         console.log(`Readwise Official plugin: Already saved data from export ${exportID}`)
         handleSyncSuccess()
         logseq.App.showMsg("Readwise data is already up to date")
+        setIsSyncing(false)
         return
     }
 
@@ -241,14 +242,15 @@ async function downloadArchive(exportID: number): Promise<void> {
         )
     } catch (e) {
         console.log("Readwise Official plugin: fetch failed in downloadArchive: ", e)
+        setIsSyncing(false)
     }
     const booksIDsMap = logseq.settings!.booksIDsMap || {}
     if (response && response.ok) {
         const responseJSON = await response.json()
         const books = responseJSON.books
         if (books.length) {
-            logseq.App.showMsg("Saving pages...")
-            for (const book of books) {
+            setNotification("Saving pages...")
+            for (const [index, book] of books.entries()) {
                 const bookId = book.userBookExportId
                 const bookIsUpdate = book.isUpdate
                 const bookData = book.data
@@ -258,14 +260,14 @@ async function downloadArchive(exportID: number): Promise<void> {
                     const convertedUpdateBook = convertReadwiseToIBatchBlock(bookData)
                     if (convertedUpdateBook !== undefined) {
                         await updatePage(page, convertedUpdateBook!.children!)
-                        logseq.App.showMsg(`Updating "${bookData.title}" completed`)
+                        setNotification(`Updating "${bookData.title}" completed (${index}/${books.length})`)
                     }
                 } else {
                     const convertedNewBook = convertReadwiseToIBatchBlock(bookData)
                     if (convertedNewBook !== undefined) {
                         const created = await createPage(bookData.title, convertedNewBook!.children!)
                         if (created) {
-                            logseq.App.showMsg(`Creating "${bookData.title}" completed`)
+                            setNotification(`Creating "${bookData.title}" completed (${index}/${books.length})`)
                             booksIDsMap[bookData.title] = bookId
                         }
                     }
@@ -275,7 +277,11 @@ async function downloadArchive(exportID: number): Promise<void> {
         logseq.updateSettings({
             booksIDsMap: booksIDsMap
         })
+        setIsSyncing(false)
+        setNotification(null)
     } else {
+        setIsSyncing(false)
+        setNotification(null)
         console.log("Readwise Official plugin: bad response in downloadArchive: ", response)
         logseq.App.showMsg(getErrorMessageFromResponse(response as Response), "error")
         return
@@ -284,9 +290,12 @@ async function downloadArchive(exportID: number): Promise<void> {
     await acknowledgeSyncCompleted()
     handleSyncSuccess("Synced!", exportID)
     logseq.App.showMsg("Readwise sync completed")
+    setIsSyncing(false)
+    setNotification(null)
 }
 
-async function getExportStatus(statusID?: number) {
+// @ts-ignore
+async function getExportStatus(statusID?: number, setNotification?, setIsSyncing?) {
     const statusId = statusID || logseq.settings!.currentSyncStatusID
     const url = `${baseURL}/api/get_export_status?exportStatusId=${statusId}`
     let response, data: ExportStatusResponse
@@ -311,21 +320,27 @@ async function getExportStatus(statusID?: number) {
     const SUCCESS_STATUSES = ['SUCCESS']
     if (WAITING_STATUSES.includes(data.taskStatus)) {
         if (data.booksExported) {
-            logseq.App.showMsg(`Exporting Readwise data (${data.booksExported} / ${data.totalBooks}) ...`)
+            setNotification(`Exporting Readwise data (${data.booksExported} / ${data.totalBooks}) ...`)
         } else {
-            logseq.App.showMsg("Building export...")
+            setNotification("Building export...")
         }
         // re-try in 2 secs
         await new Promise(r => setTimeout(r, 2000))
-        await getExportStatus(statusId)
+        await getExportStatus(statusId, setNotification, setIsSyncing)
     } else if (SUCCESS_STATUSES.includes(data.taskStatus)) {
-        return downloadArchive(statusId)
+        setNotification(null)
+        return downloadArchive(statusId, setNotification, setIsSyncing)
     } else {
+        setNotification(null)
+        setIsSyncing(false)
         handleSyncError("Sync failed")
     }
+    setNotification(null)
+    setIsSyncing(false)
 }
 
-export async function syncHighlights(auto?: boolean) {
+// @ts-ignore
+export async function syncHighlights(auto?: boolean, setNotification?, setIsSyncing?) {
     let url = `${baseURL}/api/logseq/init?auto=${auto}`
     if (auto) {
         await new Promise(r => setTimeout(r, 3000))
@@ -350,6 +365,7 @@ export async function syncHighlights(auto?: boolean) {
         if (data.latest_id <= logseq.settings!.lastSavedStatusID) {
             handleSyncSuccess()
             logseq.App.showMsg("Readwise data is already up to date")
+            setIsSyncing(false)
             return
         }
         logseq.updateSettings({
@@ -357,16 +373,19 @@ export async function syncHighlights(auto?: boolean) {
         })
         if (response.status === 201) {
             logseq.App.showMsg("Syncing Readwise data")
-            return getExportStatus(data.latest_id)
+            return getExportStatus(data.latest_id, setNotification, setIsSyncing)
         } else {
+            setIsSyncing(false)
             handleSyncSuccess("Synced", data.latest_id)
             logseq.App.showMsg("Latest Readwise sync already happened on your other device. Data should be up to date")
         }
     } else {
         console.log("Readwise Official plugin: bad response in requestArchive: ", response)
         logseq.App.showMsg(getErrorMessageFromResponse(response as Response), "error")
+        setIsSyncing(false)
         return
     }
+    setIsSyncing(false)
 }
 
 
