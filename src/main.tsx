@@ -99,11 +99,11 @@ async function createPage(title: string, blocks: Array<IBatchBlock>) {
         createFirstBlock: false,
         redirect: false
     })
-    // await new Promise(r => setTimeout(r, 1000))
+    await new Promise(r => setTimeout(r, 500))
     const pageBlocksTree = await logseq.Editor.getPageBlocksTree(title)
     if (pageBlocksTree.length === 0) {
         // the correct flow because we are using createFirstBlock: false
-        const firstBlock = await logseq.Editor.insertBlock(page!.name, blocks[0].content, {
+        const firstBlock = await logseq.Editor.insertBlock(page!.originalName, blocks[0].content, {
             before: false,
             isPageBlock: true
         })
@@ -122,13 +122,20 @@ async function createPage(title: string, blocks: Array<IBatchBlock>) {
 
 
 async function updatePage(page: PageEntity, blocks: Array<IBatchBlock>) {
-    const pageBlocksTree = await logseq.Editor.getPageBlocksTree(page.name)
+    const pageBlocksTree = await logseq.Editor.getPageBlocksTree(page.originalName)
     // uuid isn't working: https://github.com/logseq/logseq/issues/4920
-    if (pageBlocksTree.length > 1) {
+    await new Promise(r => setTimeout(r, 500))
+    if (pageBlocksTree.length === 0) {
+        const firstBlock = await logseq.Editor.insertBlock(page!.originalName, blocks[0].content, {
+            before: false,
+            isPageBlock: true
+        })
+        await logseq.Editor.insertBatchBlock(firstBlock!.uuid, blocks.slice(1), {sibling: true})
+    } else if (pageBlocksTree.length > 0) {
         const _last = pageBlocksTree[pageBlocksTree.length - 1]
         await logseq.Editor.insertBatchBlock(_last!.uuid, blocks, {sibling: true})
     } else {
-        logseq.App.showMsg(`Error updating "${page.name}", page not loaded`, "error")
+        logseq.App.showMsg(`Error updating "${page.originalName}", page not loaded`, "error")
     }
 }
 
@@ -160,6 +167,18 @@ function handleSyncError(msg: string) {
 function clearSettingsAfterRun() {
     logseq.updateSettings({
         currentSyncStatusID: 0
+    })
+}
+
+export function clearSettingsComplete() {
+    logseq.updateSettings({
+        currentSyncStatusID: 0,
+        lastSyncFailed: false,
+        lastSavedStatusID: 0,
+        booksIDsMap: null,
+        readwiseAccessToken: null,
+        isLoadAuto: false,
+        isResyncDeleted: false
     })
 }
 
@@ -224,6 +243,14 @@ async function acknowledgeSyncCompleted() {
     }
 }
 
+export async function removeDocuments(documentsToRemove: Array<string>) {
+    for (const docTitle of documentsToRemove) {
+        await logseq.Editor.deletePage(docTitle)
+        console.log(`Deleting ${docTitle}`)
+    }
+    await logseq.Editor.deletePage("Readwise")
+}
+
 // @ts-ignore
 async function downloadArchive(exportID: number, setNotification?, setIsSyncing?): Promise<void> {
     const artifactURL = `${baseURL}/api/download_artifact/${exportID}`
@@ -277,6 +304,10 @@ async function downloadArchive(exportID: number, setNotification?, setIsSyncing?
         logseq.updateSettings({
             booksIDsMap: booksIDsMap
         })
+        const readwisePage = await logseq.Editor.getPage("Readwise")
+        if (readwisePage) {
+            await updatePage(readwisePage, convertReadwiseToIBatchBlock(responseJSON.syncNotification!).children!)
+        }
         setIsSyncing(false)
         setNotification(null)
     } else {

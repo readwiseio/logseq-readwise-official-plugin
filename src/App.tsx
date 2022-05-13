@@ -2,7 +2,7 @@ import React, {useEffect, useRef, useState} from "react"
 import {useAppVisible} from "./utils"
 import logo from "./logo.svg"
 import "./App.css"
-import {getUserAuthToken, syncHighlights, baseURL} from "./main"
+import {getUserAuthToken, syncHighlights, removeDocuments, baseURL, clearSettingsComplete} from "./main"
 
 function App() {
     const innerRef = useRef<HTMLDivElement>(null)
@@ -33,6 +33,16 @@ function App() {
         } else {
             await syncHighlights(false, setNotification, setIsSyncing)
         }
+    }
+
+    async function clearInstallation() {
+        const booksIDsMap = {...(logseq.settings!.booksIDsMap || {})}
+        clearSettingsComplete()
+        // @ts-ignore
+        const documentsToRemove = Object.keys(booksIDsMap)
+        await removeDocuments(documentsToRemove)
+        await new Promise(r => setTimeout(r, 2000))
+        await logseq.App.relaunch()
     }
 
     function openPreferences() {
@@ -176,6 +186,21 @@ function App() {
                                             htmlFor="isResyncDeleted"
                                             className="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"
                                         ></label>
+                                    </div>
+                                </div>
+                                <div className="mt-1 mb-4 flex justify-between">
+                                    <div className="text-m text-gray-700 w-2/3">
+                                        Danger zone
+                                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                                            You can delete everything got from Readwise and start from scratch.
+                                        </p>
+                                    </div>
+                                    <div className="self-center mr-1 mt-1">
+                                        <button onClick={clearInstallation}
+                                                type="button"
+                                                className="focus:outline-none text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900">
+                                            Reset
+                                        </button>
                                     </div>
                                 </div>
                             </div>
