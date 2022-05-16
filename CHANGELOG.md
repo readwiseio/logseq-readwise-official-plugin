@@ -1,3 +1,16 @@
+# [1.1.0](https://github.com/readwiseio/logseq-readwise-official-plugin/compare/v1.0.2...v1.1.0) (2022-05-16)
+
+
+### Bug Fixes
+
+* Sync failed during import ([212c10d](https://github.com/readwiseio/logseq-readwise-official-plugin/commit/212c10d21e4971ded7326d9ad22b0a0af2e589c7))
+
+
+### Features
+
+* React 18 ([451b2b5](https://github.com/readwiseio/logseq-readwise-official-plugin/commit/451b2b5b891f50a566c3f4365859d38086174326))
+* Reset installation ([90598fc](https://github.com/readwiseio/logseq-readwise-official-plugin/commit/90598fcab80eced2ceb54bb4d0db75f921d8fe5c))
+
 ## [1.0.2](https://github.com/readwiseio/logseq-readwise-official-plugin/compare/v1.0.1...v1.0.2) (2022-05-13)
 
 
