@@ -110,11 +110,11 @@ async function createPage(title: string, blocks: Array<IBatchBlock>) {
         await logseq.Editor.insertBatchBlock(firstBlock!.uuid, blocks.slice(1), {sibling: true})
         return true
     } else if (pageBlocksTree.length === 1) {
-            // createFirstBlock: false didn't work and created a block : (
-            const _first = pageBlocksTree[0]
-            await logseq.Editor.insertBatchBlock(_first!.uuid, blocks, {sibling: true})
-            await logseq.Editor.removeBlock(_first!.uuid)
-            return true
+        // createFirstBlock: false didn't work and created a block : (
+        const _first = pageBlocksTree[0]
+        await logseq.Editor.insertBatchBlock(_first!.uuid, blocks, {sibling: true})
+        await logseq.Editor.removeBlock(_first!.uuid)
+        return true
     }
     logseq.App.showMsg(`Error creating "${title}", page not created`, "warning")
     return false
@@ -285,21 +285,27 @@ async function downloadArchive(exportID: number, setNotification?, setIsSyncing?
                 const bookId = book.userBookExportId
                 const bookIsUpdate = book.isUpdate
                 const bookData = book.data
+                booksIDsMap[bookData.title] = bookId
                 const page = await logseq.Editor.getPage(bookData.title)
-                if (page !== null && bookIsUpdate) {
+                if (page !== null) {
                     // page exists
-                    const convertedUpdateBook = convertReadwiseToIBatchBlock(bookData)
-                    if (convertedUpdateBook !== undefined) {
-                        await updatePage(page, convertedUpdateBook!.children!)
-                        setNotification(`Updating "${bookData.title}" completed (${index}/${books.length})`)
+                    if (bookIsUpdate) {
+                        const convertedUpdateBook = convertReadwiseToIBatchBlock(bookData)
+                        if (convertedUpdateBook !== undefined) {
+                            await updatePage(page, convertedUpdateBook!.children!)
+                            setNotification(`Updating "${bookData.title}" completed (${index}/${books.length})`)
+                        }
+                    } else {
+                        // trying to updating a book but during a full resync (the page already exists)
+                        setNotification(`Skipping "${bookData.title}", page already exists (${index}/${books.length})`)
                     }
+
                 } else {
                     const convertedNewBook = convertReadwiseToIBatchBlock(bookData)
                     if (convertedNewBook !== undefined) {
                         const created = await createPage(bookData.title, convertedNewBook!.children!)
                         if (created) {
                             setNotification(`Creating "${bookData.title}" completed (${index}/${books.length})`)
-                            booksIDsMap[bookData.title] = bookId
                         }
                     }
                 }
@@ -380,7 +386,8 @@ export async function syncHighlights(auto?: boolean, setNotification?, setIsSync
     if (auto) {
         await new Promise(r => setTimeout(r, 3000))
     }
-    const parentDeleted = await logseq.Editor.getPage(parentPageName) === null
+    const isForceCompleteSync = logseq.settings!.currentSyncStatusID !== 0
+    const parentDeleted = await logseq.Editor.getPage(parentPageName) === null || isForceCompleteSync
     if (parentDeleted) {
         url += `&parentPageDeleted=${parentDeleted}`
     }
@@ -487,8 +494,20 @@ function main() {
   </a>
 `,
     })
+
+    // check current state
+    if (logseq.settings!.currentSyncStatusID !== 0) {
+        // the last sync didn't finish correctly (initial phase)
+        (new Promise(r => setTimeout(r, 2000))).then(() => {
+                logseq.App.showMsg("Readwise sync didn't finish correctly, please start a new sync again", "warning")
+            }
+        )
+    }
+
+
     if (logseq.settings!.readwiseAccessToken && logseq.settings!.isLoadAuto) {
         syncHighlights(true).then(() => console.log('Auto sync loaded.'))
+        // TODO: check function params here
     }
 
     if (logseq.settings!.readwiseAccessToken && logseq.settings!.isResyncDeleted) {
@@ -505,7 +524,7 @@ function main() {
                                 resolve(null)
                             }
                         })
-                    });
+                    })
                 })).then(r => {
                     // @ts-ignore
                     refreshBookExport(r.filter(b => b !== null)).then(() => {
