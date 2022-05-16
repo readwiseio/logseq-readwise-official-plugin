@@ -1,3 +1,10 @@
+## [1.1.1](https://github.com/readwiseio/logseq-readwise-official-plugin/compare/v1.1.0...v1.1.1) (2022-05-16)
+
+
+### Bug Fixes
+
+* Auto sync missing functions ([9c933c9](https://github.com/readwiseio/logseq-readwise-official-plugin/commit/9c933c93d8f8f49955d8a0f1a054477e1871db60))
+
 # [1.1.0](https://github.com/readwiseio/logseq-readwise-official-plugin/compare/v1.0.2...v1.1.0) (2022-05-16)
 
 
