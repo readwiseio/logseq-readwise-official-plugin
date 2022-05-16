@@ -243,11 +243,15 @@ async function acknowledgeSyncCompleted() {
     }
 }
 
-export async function removeDocuments(documentsToRemove: Array<string>) {
+// @ts-ignore
+export async function removeDocuments(documentsToRemove: Array<string>, setNotification?, setIsResetting?) {
+    setIsResetting(true)
     for (const docTitle of documentsToRemove) {
         await logseq.Editor.deletePage(docTitle)
-        console.log(`Deleting ${docTitle}`)
+        setNotification(`Deleting ${docTitle}`)
     }
+    setNotification(null)
+    setIsResetting(false)
     await logseq.Editor.deletePage("Readwise")
 }
 

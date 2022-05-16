@@ -12,6 +12,7 @@ function App() {
     const [isResyncDeleted, setIsResyncDeleted] = useState(logseq.settings!.isResyncDeleted)
     const [notification, setNotification] = useState(null)
     const [isSyncing, setIsSyncing] = useState(false)
+    const [isResetting, setIsResetting] = useState(false)
 
     const onClickOutside = () => window.logseq.hideMainUI()
 
@@ -40,8 +41,8 @@ function App() {
         clearSettingsComplete()
         // @ts-ignore
         const documentsToRemove = Object.keys(booksIDsMap)
-        await removeDocuments(documentsToRemove)
-        await new Promise(r => setTimeout(r, 2000))
+        await removeDocuments(documentsToRemove, setNotification, setIsResetting)
+        await new Promise(r => setTimeout(r, 1000))
         await logseq.App.relaunch()
     }
 
@@ -192,13 +193,13 @@ function App() {
                                     <div className="text-m text-gray-700 w-2/3">
                                         Danger zone
                                         <p className="text-sm text-gray-500 dark:text-gray-400">
-                                            You can delete everything got from Readwise and start from scratch.
+                                            You can delete everything got from Readwise and start from scratch
                                         </p>
                                     </div>
                                     <div className="self-center mr-1 mt-1">
                                         <button onClick={clearInstallation}
-                                                type="button"
-                                                className="focus:outline-none text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900">
+                                                type="button" disabled={isResetting}
+                                                className={`focus:outline-none text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900 ${isResetting ? 'button-disabled' : ''}`}>
                                             Reset
                                         </button>
                                     </div>
