@@ -2,12 +2,12 @@ import "@logseq/libs"
 import "virtual:windi.css"
 
 import React from "react"
-import ReactDOM from "react-dom"
 import App from "./App"
 
 import {logseq as PL} from "../package.json"
 import {triggerIconName} from "./utils"
 import {IBatchBlock, PageEntity, SettingSchemaDesc} from "@logseq/libs/dist/LSPlugin"
+import {createRoot} from "react-dom/client";
 
 // @ts-expect-error
 const css = (t, ...args) => String.raw(t, ...args)
@@ -444,11 +444,12 @@ function main() {
     logseq.useSettingsSchema(schema)
     const pluginId = logseq.baseInfo.id
     console.info(`#${pluginId}: MAIN`)
-    ReactDOM.render(
+    const container = document.getElementById('app')
+    const root = createRoot(container!)
+    root.render(
         <React.StrictMode>
             <App/>
-        </React.StrictMode>,
-        document.getElementById("app")
+        </React.StrictMode>
     )
 
     function createModel() {
