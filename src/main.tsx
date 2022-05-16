@@ -506,8 +506,8 @@ function main() {
 
 
     if (logseq.settings!.readwiseAccessToken && logseq.settings!.isLoadAuto) {
-        syncHighlights(true).then(() => console.log('Auto sync loaded.'))
-        // TODO: check function params here
+        // eslint-disable-next-line @typescript-eslint/no-empty-function
+        syncHighlights(true, console.log, () => {}).then(() => console.log('Auto sync loaded.'))
     }
 
     if (logseq.settings!.readwiseAccessToken && logseq.settings!.isResyncDeleted) {
