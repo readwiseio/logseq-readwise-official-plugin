@@ -1,7 +1,7 @@
 import React, {useState} from "react";
 import {useMountedState} from "react-use";
 
-export const triggerIconName = "logseq-readwise-trigger-icon";
+export const triggerIconName = "rw-icon";
 
 export const useAppVisible = () => {
     const [visible, setVisible] = useState(logseq.isMainUIVisible);

@@ -3,6 +3,7 @@ import "virtual:windi.css"
 
 import React from "react"
 import App from "./App"
+import Font from "./icomoon.woff";
 
 import {logseq as PL} from "../package.json"
 import {triggerIconName} from "./utils"
@@ -110,10 +111,9 @@ async function createPage(title: string, blocks: Array<IBatchBlock>) {
         await logseq.Editor.insertBatchBlock(firstBlock!.uuid, blocks.slice(1), {sibling: true})
         return true
     } else if (pageBlocksTree.length === 1) {
-        // createFirstBlock: false didn't work and created a block : (
+        // createFirstBlock: false creates a block to title if the name contains invalid characters
         const _first = pageBlocksTree[0]
         await logseq.Editor.insertBatchBlock(_first!.uuid, blocks, {sibling: true})
-        await logseq.Editor.removeBlock(_first!.uuid)
         return true
     }
     logseq.App.showMsg(`Error creating "${title}", page not created`, "warning")
@@ -476,21 +476,39 @@ function main() {
         // @ts-expect-error
         top[magicKey] = true
     }
-
+    console.log(Font);
     logseq.provideStyle(css`
+       @font-face {
+        font-family: 'readwise';
+        src:  url(${Font}) format('woff');
+        font-weight: normal;
+        font-style: normal;
+        font-display: block;
+      }
+      [class^="rw-"], [class*=" rw-"] {
+        font-family: 'readwise' !important;
+        speak: never;
+        font-style: normal;
+        font-weight: normal;
+        font-variant: normal;
+        text-transform: none;
+        line-height: 1;
+        -webkit-font-smoothing: antialiased;
+      }
       .${triggerIconName} {
-        width: 18px;
-        height: 18px;
-        background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' width='18px' height='18px' viewBox='0 0 18 18' version='1.1'><rect x='0' y='0' width='18' height='18' style='fill:rgb(0%,0%,0%);fill-opacity:1;stroke:none;'/><path style=' stroke:none;fill-rule:evenodd;fill:rgb(100%,100%,100%);fill-opacity:1;' d='M 14.363281 13.800781 C 13.730469 13.722656 13.417969 13.515625 13.039062 12.882812 L 10.886719 9.382812 C 12.492188 9.113281 13.285156 8.332031 13.285156 6.695312 C 13.285156 4.53125 11.757812 3.914062 8.832031 3.914062 L 3.980469 3.914062 L 3.980469 4.546875 C 4.90625 4.621094 5.089844 4.726562 5.089844 5.597656 L 5.089844 12.75 C 5.089844 13.605469 4.878906 13.726562 3.980469 13.800781 L 3.980469 14.433594 L 8.695312 14.433594 L 8.695312 13.800781 C 7.792969 13.726562 7.582031 13.605469 7.582031 12.75 L 7.582031 9.550781 L 8.3125 9.550781 L 11.238281 14.429688 L 14.363281 14.429688 Z M 10.832031 7.65625 C 10.832031 7.65625 10.453125 5.503906 10.699219 5.050781 L 7.542969 8.546875 C 8.316406 7.90625 10.648438 7.894531 10.648438 7.894531 C 10.761719 7.871094 10.839844 7.769531 10.832031 7.65625 Z M 10.832031 7.65625 '/></svg>");
+        font-size: 20px;
+      }
+      .${triggerIconName}:before {
+        content: "\e900";
       }
     `)
 
     logseq.App.registerUIItem("toolbar", {
         key: "readwise-plugin-open",
         template: `
-  <a data-on-click="show">
-    <div class="${triggerIconName}">
-    </div>
+  <a data-on-click="show" title="Readwise" class="button">
+    <span class="${triggerIconName}">
+    </span>
   </a>
 `,
     })
