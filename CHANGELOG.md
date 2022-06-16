@@ -1,3 +1,10 @@
+## [1.1.2](https://github.com/readwiseio/logseq-readwise-official-plugin/compare/v1.1.1...v1.1.2) (2022-06-16)
+
+
+### Bug Fixes
+
+* UI improvements ([a8875d6](https://github.com/readwiseio/logseq-readwise-official-plugin/commit/a8875d63ca65bdb8c76b65071ff0be0d01a238f2))
+
 ## [1.1.1](https://github.com/readwiseio/logseq-readwise-official-plugin/compare/v1.1.0...v1.1.1) (2022-05-16)
 
 
