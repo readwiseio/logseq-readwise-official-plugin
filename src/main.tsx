@@ -430,6 +430,15 @@ export async function syncHighlights(auto?: boolean, setNotification?, setIsSync
     setIsSyncing(false)
 }
 
+function checkForCurrentGraph() {
+    window.logseq.App.getCurrentGraph().then((currentGraph) => {
+        if (currentGraph?.url !== logseq.settings!.currentGraph.url) {
+            // @ts-ignore
+            window.onAnotherGraph = true
+            logseq.App.showMsg(`Readwise is connected to your other graph ${logseq.settings!.currentGraph.name}. Please switch to that to sync your latest highlights`, "error")
+        }
+    })
+}
 
 function main() {
     const schema: Array<SettingSchemaDesc> = [
@@ -476,7 +485,6 @@ function main() {
         // @ts-expect-error
         top[magicKey] = true
     }
-    console.log(Font);
     logseq.provideStyle(css`
        @font-face {
         font-family: 'readwise';
@@ -506,11 +514,11 @@ function main() {
     logseq.App.registerUIItem("toolbar", {
         key: "readwise-plugin-open",
         template: `
-  <a data-on-click="show" title="Readwise" class="button">
-    <span class="${triggerIconName}">
-    </span>
-  </a>
-`,
+          <a data-on-click="show" title="Readwise" class="button">
+            <span class="${triggerIconName}">
+            </span>
+          </a>
+        `,
     })
 
     // check current state
@@ -521,37 +529,45 @@ function main() {
             }
         )
     }
-
-
+    checkForCurrentGraph()
+    window.logseq.App.onCurrentGraphChanged(() => {
+        checkForCurrentGraph()
+    })
+    // @ts-ignore
+    const onAnotherGraph = window.onAnotherGraph
     if (logseq.settings!.readwiseAccessToken && logseq.settings!.isLoadAuto) {
-        // eslint-disable-next-line @typescript-eslint/no-empty-function
-        syncHighlights(true, console.log, () => {}).then(() => console.log('Auto sync loaded.'))
+        if (!onAnotherGraph) {
+            // eslint-disable-next-line @typescript-eslint/no-empty-function
+            syncHighlights(true, console.log, () => {
+            }).then(() => console.log('Auto sync loaded.'))
+        }
     }
-
     if (logseq.settings!.readwiseAccessToken && logseq.settings!.isResyncDeleted) {
-        (new Promise(r => setTimeout(r, 5000))).then(() => {
-                const booksIDsMap = logseq.settings!.booksIDsMap || {}
-                // @ts-ignore
-                Promise.all(Object.keys(booksIDsMap).map((bookName) => {
-                    return new Promise((resolve) => {
-                        logseq.Editor.getPage(bookName).then((res) => {
-                            if (res === null) {
-                                resolve(([booksIDsMap[bookName], bookName]))
-                                console.log(`Page '${bookName}' deleted, going to resync.`)
-                            } else {
-                                resolve(null)
-                            }
+        if (!onAnotherGraph) {
+            (new Promise(r => setTimeout(r, 5000))).then(() => {
+                    const booksIDsMap = logseq.settings!.booksIDsMap || {}
+                    // @ts-ignore
+                    Promise.all(Object.keys(booksIDsMap).map((bookName) => {
+                        return new Promise((resolve) => {
+                            logseq.Editor.getPage(bookName).then((res) => {
+                                if (res === null) {
+                                    resolve(([booksIDsMap[bookName], bookName]))
+                                    console.log(`Page '${bookName}' deleted, going to resync.`)
+                                } else {
+                                    resolve(null)
+                                }
+                            })
+                        })
+                    })).then(r => {
+                        // @ts-ignore
+                        refreshBookExport(r.filter(b => b !== null)).then(() => {
+                            console.log('Resync deleted done.')
                         })
                     })
-                })).then(r => {
-                    // @ts-ignore
-                    refreshBookExport(r.filter(b => b !== null)).then(() => {
-                        console.log('Resync deleted done.')
-                    })
-                })
 
-            }
-        )
+                }
+            )
+        }
     }
 }
 
