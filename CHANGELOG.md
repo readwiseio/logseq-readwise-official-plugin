@@ -1,3 +1,10 @@
+## [1.1.3](https://github.com/readwiseio/logseq-readwise-official-plugin/compare/v1.1.2...v1.1.3) (2022-06-20)
+
+
+### Bug Fixes
+
+* Disable sync within another graph ([ccd92ce](https://github.com/readwiseio/logseq-readwise-official-plugin/commit/ccd92ce88ff9a622012d134e4cef5feb2017b145))
+
 ## [1.1.2](https://github.com/readwiseio/logseq-readwise-official-plugin/compare/v1.1.1...v1.1.2) (2022-06-16)
 
 
