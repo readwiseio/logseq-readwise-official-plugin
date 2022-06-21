@@ -96,7 +96,7 @@ function convertReadwiseToIBatchBlock(obj: ReadwiseBlock) {
 }
 
 async function createPage(title: string, blocks: Array<IBatchBlock>) {
-    const page = await logseq.Editor.createPage(title, {}, {
+    const page = await logseq.Editor.createPage(title, {'title': title}, {
         createFirstBlock: false,
         redirect: false
     })
@@ -113,7 +113,8 @@ async function createPage(title: string, blocks: Array<IBatchBlock>) {
     } else if (pageBlocksTree.length === 1) {
         // createFirstBlock: false creates a block to title if the name contains invalid characters
         const _first = pageBlocksTree[0]
-        await logseq.Editor.insertBatchBlock(_first!.uuid, blocks, {sibling: true})
+        await logseq.Editor.updateBlock(_first!.uuid, _first.content + "\n" + blocks[0].content)
+        await logseq.Editor.insertBatchBlock(_first!.uuid, blocks.slice(1), {sibling: true})
         return true
     }
     logseq.App.showMsg(`Error creating "${title}", page not created`, "warning")
