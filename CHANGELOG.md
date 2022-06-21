@@ -1,3 +1,10 @@
+## [1.1.4](https://github.com/readwiseio/logseq-readwise-official-plugin/compare/v1.1.3...v1.1.4) (2022-06-21)
+
+
+### Bug Fixes
+
+* Title property conflict ([036c20d](https://github.com/readwiseio/logseq-readwise-official-plugin/commit/036c20d7f10fd93669df27dfa17e55812342a371))
+
 ## [1.1.3](https://github.com/readwiseio/logseq-readwise-official-plugin/compare/v1.1.2...v1.1.3) (2022-06-20)
 
 
