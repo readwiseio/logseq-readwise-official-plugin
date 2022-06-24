@@ -1,3 +1,10 @@
+## [1.1.5](https://github.com/readwiseio/logseq-readwise-official-plugin/compare/v1.1.4...v1.1.5) (2022-06-24)
+
+
+### Bug Fixes
+
+* Reset missing current graph info ([f3b7272](https://github.com/readwiseio/logseq-readwise-official-plugin/commit/f3b7272337143d4825b580947d4d55ff76e3a5bc))
+
 ## [1.1.4](https://github.com/readwiseio/logseq-readwise-official-plugin/compare/v1.1.3...v1.1.4) (2022-06-21)
 
 
