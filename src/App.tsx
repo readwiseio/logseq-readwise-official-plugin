@@ -23,7 +23,7 @@ function App() {
         if (accessToken !== undefined) {
             logseq.updateSettings({
                 readwiseAccessToken: accessToken,
-                currentGraph: currentGraph
+                    currentGraph: currentGraph
             })
             setAccessToken(accessToken)
             console.log("Access token saved")
@@ -75,7 +75,10 @@ function App() {
             <div ref={innerRef} className="flex justify-center border border-black">
                 <div className="absolute top-1/3 bg-white p-3 w-2/5 border">
                     <div className="flex place-content-between">
-                        <h2 className="text-xl font-semibold">Readwise settings</h2>
+                        <div>
+                            <h2 className="text-xl font-semibold mb-2">Readwise Official</h2>
+                            <span>Created by <a className="underline decoration-sky-500 text-sky-500" target="_blank" href="https://readwise.io/" rel="noreferrer">Readwise</a> 📚</span>
+                        </div>
                         <button type="button" onClick={() => window.logseq.hideMainUI()}>
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <path d="M7.53033 6.46967C7.23744 6.17678 6.76256 6.17678 6.46967 6.46967C6.17678 6.76256 6.17678 7.23744 6.46967 7.53033L10.9393 12L6.46967 16.4697C6.17678 16.7626 6.17678 17.2374 6.46967 17.5303C6.76256 17.8232 7.23744 17.8232 7.53033 17.5303L12 13.0607L16.4697 17.5303C16.7626 17.8232 17.2374 17.8232 17.5303 17.5303C17.8232 17.2374 17.8232 16.7626 17.5303 16.4697L13.0607 12L17.5303 7.53033C17.8232 7.23744 17.8232 6.76256 17.5303 6.46967C17.2374 6.17678 16.7626 6.17678 16.4697 6.46967L12 10.9393L7.53033 6.46967Z" fill="black" />
@@ -217,7 +220,10 @@ function App() {
 
                         </>
                     )}
-                    <div>
+                    <div className="mt-3">
+                        <p>Question? Please see our <a className="underline decoration-sky-500 text-sky-500" target="_blank" href="https://help.readwise.io/article/138-how-does-the-readwise-to-logseq-export-integration-work" rel="noreferrer">Documentation</a> or email us at <a className="underline decoration-sky-500 text-sky-500" target="_blank" href="mailto:hello@readwise.io" rel="noreferrer">hello@readwise.io</a> 🙂</p>
+                    </div>
+                    <div className="mt-3">
                         <span className="text-sm text-gray-500">
                             {notification && (
                                 <>
