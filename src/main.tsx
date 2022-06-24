@@ -179,7 +179,8 @@ export function clearSettingsComplete() {
         booksIDsMap: null,
         readwiseAccessToken: null,
         isLoadAuto: false,
-        isResyncDeleted: false
+        isResyncDeleted: false,
+        currentGraph: null
     })
 }
 
