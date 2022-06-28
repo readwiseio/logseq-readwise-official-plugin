@@ -1,3 +1,10 @@
+# [1.2.0](https://github.com/readwiseio/logseq-readwise-official-plugin/compare/v1.1.5...v1.2.0) (2022-06-28)
+
+
+### Features
+
+* Auto date format ([a06ac41](https://github.com/readwiseio/logseq-readwise-official-plugin/commit/a06ac419e0a7203d412b30afea9694ed961b7b66))
+
 ## [1.1.5](https://github.com/readwiseio/logseq-readwise-official-plugin/compare/v1.1.4...v1.1.5) (2022-06-24)
 
 
