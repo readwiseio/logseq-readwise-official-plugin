@@ -4,6 +4,7 @@ import "virtual:windi.css"
 import React from "react"
 import App from "./App"
 import Font from "./icomoon.woff";
+import {format} from 'date-fns'
 
 import {logseq as PL} from "../package.json"
 import {triggerIconName} from "./utils"
@@ -13,6 +14,8 @@ import {createRoot} from "react-dom/client";
 // @ts-expect-error
 const css = (t, ...args) => String.raw(t, ...args)
 const magicKey = `__${PL.id}__loaded__`
+// @ts-ignore
+const partial = (func, ...args) => (...rest) => func(...args, ...rest);
 
 export const isDev = process.env.NODE_ENV === "development"
 export const baseURL = isDev ? "https://local.readwise.io:8000" : "https://readwise.io"
@@ -81,14 +84,29 @@ export async function getUserAuthToken(attempt = 0) {
     }
 }
 
+function processBlockContent(content: string, preferredDateFormat: string) {
+    const reg = new RegExp(/timestamp:\|([0-9]+)\|/i)
+    if (content !== undefined) {
+        return content.replace(reg, function (match, timestamp) {
+            try {
+                return format(new Date(parseInt(timestamp)), preferredDateFormat)
+            } catch (e) {
+                return ""
+            }
 
-function convertReadwiseToIBatchBlock(obj: ReadwiseBlock) {
+        })
+    } else {
+        return content
+    }
+}
+
+function convertReadwiseToIBatchBlock(preferredDateFormat: string, obj: ReadwiseBlock) {
     // we ignore the first one (which we can consider as the block title)
     const block: IBatchBlock = {
-        content: obj.string,
+        content: processBlockContent(obj.string, preferredDateFormat)!,
     }
     if (obj.children !== undefined) {
-        block.children = obj.children.map(convertReadwiseToIBatchBlock).filter(
+        block.children = obj.children.map(partial(convertReadwiseToIBatchBlock, preferredDateFormat)).filter(
             (b): b is IBatchBlock => b !== undefined
         )
     }
@@ -278,6 +296,7 @@ async function downloadArchive(exportID: number, setNotification?, setIsSyncing?
         setIsSyncing(false)
     }
     const booksIDsMap = logseq.settings!.booksIDsMap || {}
+    const preferredDateFormat = (await logseq.App.getUserConfigs()).preferredDateFormat
     if (response && response.ok) {
         const responseJSON = await response.json()
         const books = responseJSON.books
@@ -292,7 +311,7 @@ async function downloadArchive(exportID: number, setNotification?, setIsSyncing?
                 if (page !== null) {
                     // page exists
                     if (bookIsUpdate) {
-                        const convertedUpdateBook = convertReadwiseToIBatchBlock(bookData)
+                        const convertedUpdateBook = convertReadwiseToIBatchBlock(preferredDateFormat, bookData)
                         if (convertedUpdateBook !== undefined) {
                             await updatePage(page, convertedUpdateBook!.children!)
                             setNotification(`Updating "${bookData.title}" completed (${index}/${books.length})`)
@@ -303,7 +322,7 @@ async function downloadArchive(exportID: number, setNotification?, setIsSyncing?
                     }
 
                 } else {
-                    const convertedNewBook = convertReadwiseToIBatchBlock(bookData)
+                    const convertedNewBook = convertReadwiseToIBatchBlock(preferredDateFormat, bookData)
                     if (convertedNewBook !== undefined) {
                         const created = await createPage(bookData.title, convertedNewBook!.children!)
                         if (created) {
@@ -318,7 +337,9 @@ async function downloadArchive(exportID: number, setNotification?, setIsSyncing?
         })
         const readwisePage = await logseq.Editor.getPage("Readwise")
         if (readwisePage) {
-            await updatePage(readwisePage, convertReadwiseToIBatchBlock(responseJSON.syncNotification!).children!)
+            await updatePage(readwisePage, convertReadwiseToIBatchBlock(
+                preferredDateFormat, responseJSON.syncNotification!
+            ).children!)
         }
         setIsSyncing(false)
         setNotification(null)
@@ -488,13 +509,14 @@ function main() {
         top[magicKey] = true
     }
     logseq.provideStyle(css`
-       @font-face {
+      @font-face {
         font-family: 'readwise';
-        src:  url(${Font}) format('woff');
+        src: url(${Font}) format('woff');
         font-weight: normal;
         font-style: normal;
         font-display: block;
       }
+
       [class^="rw-"], [class*=" rw-"] {
         font-family: 'readwise' !important;
         speak: never;
@@ -505,9 +527,11 @@ function main() {
         line-height: 1;
         -webkit-font-smoothing: antialiased;
       }
+
       .${triggerIconName} {
         font-size: 20px;
       }
+
       .${triggerIconName}:before {
         content: "\e900";
       }
