@@ -20,6 +20,7 @@ Note: This plugin requires a subscription with [Readwise](https://readwise.io) �
 ## Usage
 
 * Install the Readwise Official plugin from the Marketplace
+* Enable the plugin
 * Connect the plugin to your Readwise account
 * Customize the export settings, if desired
 * Initiate the first sync
@@ -28,3 +29,8 @@ Note: This plugin requires a subscription with [Readwise](https://readwise.io) �
 ## Support
 
 * Please see our [Documentation]() or email us at hello@readwise.io 🙂
+
+
+## **Community Resources**
+
+- To be updated! If you’ve made a resource you’d like shared here, please email Erin at erin@readwise.io and we’ll promptly add 🙂
