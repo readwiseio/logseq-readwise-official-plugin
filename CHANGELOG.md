@@ -1,3 +1,10 @@
+## [1.2.1](https://github.com/readwiseio/logseq-readwise-official-plugin/compare/v1.2.0...v1.2.1) (2022-06-30)
+
+
+### Bug Fixes
+
+* Resync deleted files not working during new sync ([ee34d37](https://github.com/readwiseio/logseq-readwise-official-plugin/commit/ee34d37f318bc3b34806eed7361fba8409871743))
+
 # [1.2.0](https://github.com/readwiseio/logseq-readwise-official-plugin/compare/v1.1.5...v1.2.0) (2022-06-28)
 
 
