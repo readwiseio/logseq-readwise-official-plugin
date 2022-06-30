@@ -196,7 +196,7 @@ export function clearSettingsComplete() {
         lastSavedStatusID: 0,
         booksIDsMap: null,
         readwiseAccessToken: null,
-        isLoadAuto: false,
+        isLoadAuto: true,
         isResyncDeleted: false,
         currentGraph: null
     })
@@ -335,8 +335,9 @@ async function downloadArchive(exportID: number, setNotification?, setIsSyncing?
         logseq.updateSettings({
             booksIDsMap: booksIDsMap
         })
-        const readwisePage = await logseq.Editor.getPage("Readwise")
+        const readwisePage = await logseq.Editor.getPage(parentPageName)
         if (readwisePage) {
+            console.log(`Updating ${parentPageName} page with sync notification`)
             await updatePage(readwisePage, convertReadwiseToIBatchBlock(
                 preferredDateFormat, responseJSON.syncNotification!
             ).children!)
@@ -403,11 +404,47 @@ async function getExportStatus(statusID?: number, setNotification?, setIsSyncing
     setIsSyncing(false)
 }
 
+function resyncDeleted() {
+    checkForCurrentGraph()
+    // @ts-ignore
+    const onAnotherGraph = window.onAnotherGraph
+    if (logseq.settings!.readwiseAccessToken && logseq.settings!.isResyncDeleted) {
+        if (!onAnotherGraph) {
+            (new Promise(r => setTimeout(r, 2000))).then(() => {
+                    const booksIDsMap = logseq.settings!.booksIDsMap || {}
+                    // @ts-ignore
+                    Promise.all(Object.keys(booksIDsMap).map((bookName) => {
+                        return new Promise((resolve) => {
+                            logseq.Editor.getPage(bookName).then((res) => {
+                                if (res === null) {
+                                    resolve(([booksIDsMap[bookName], bookName]))
+                                    console.log(`Page '${bookName}' deleted, going to resync.`)
+                                } else {
+                                    resolve(null)
+                                }
+                            })
+                        })
+                    })).then(r => {
+                        // @ts-ignore
+                        refreshBookExport(r.filter(b => b !== null)).then(() => {
+                            console.log('Resync deleted done.')
+                        })
+                    })
+
+                }
+            )
+        }
+    }
+}
+
 // @ts-ignore
 export async function syncHighlights(auto?: boolean, setNotification?, setIsSyncing?) {
     let url = `${baseURL}/api/logseq/init?auto=${auto}`
     if (auto) {
-        await new Promise(r => setTimeout(r, 3000))
+        await new Promise(r => setTimeout(r, 2000))
+    } else {
+        resyncDeleted()
+        await new Promise(r => setTimeout(r, 1000))
     }
     const isForceCompleteSync = logseq.settings!.currentSyncStatusID !== 0
     const parentDeleted = await logseq.Editor.getPage(parentPageName) === null || isForceCompleteSync
@@ -459,6 +496,9 @@ function checkForCurrentGraph() {
             // @ts-ignore
             window.onAnotherGraph = true
             logseq.App.showMsg(`Readwise is connected to your other graph ${logseq.settings!.currentGraph.name}. Please switch to that to sync your latest highlights`, "error")
+        } else {
+            // @ts-ignore
+            window.onAnotherGraph = false
         }
     })
 }
@@ -468,7 +508,7 @@ function main() {
         {
             key: "isLoadAuto",
             type: "boolean",
-            default: false,
+            default: true,
             title: "Sync automatically when Logseq opens",
             description: "If enabled, Readwise will automatically resync with Logseq each time you open the app",
         },
@@ -561,38 +601,14 @@ function main() {
     })
     // @ts-ignore
     const onAnotherGraph = window.onAnotherGraph
+    // first we check for deleted
+    resyncDeleted()
+    // next we auto sync
     if (logseq.settings!.readwiseAccessToken && logseq.settings!.isLoadAuto) {
         if (!onAnotherGraph) {
             // eslint-disable-next-line @typescript-eslint/no-empty-function
             syncHighlights(true, console.log, () => {
             }).then(() => console.log('Auto sync loaded.'))
-        }
-    }
-    if (logseq.settings!.readwiseAccessToken && logseq.settings!.isResyncDeleted) {
-        if (!onAnotherGraph) {
-            (new Promise(r => setTimeout(r, 5000))).then(() => {
-                    const booksIDsMap = logseq.settings!.booksIDsMap || {}
-                    // @ts-ignore
-                    Promise.all(Object.keys(booksIDsMap).map((bookName) => {
-                        return new Promise((resolve) => {
-                            logseq.Editor.getPage(bookName).then((res) => {
-                                if (res === null) {
-                                    resolve(([booksIDsMap[bookName], bookName]))
-                                    console.log(`Page '${bookName}' deleted, going to resync.`)
-                                } else {
-                                    resolve(null)
-                                }
-                            })
-                        })
-                    })).then(r => {
-                        // @ts-ignore
-                        refreshBookExport(r.filter(b => b !== null)).then(() => {
-                            console.log('Resync deleted done.')
-                        })
-                    })
-
-                }
-            )
         }
     }
 }
