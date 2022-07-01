@@ -26,6 +26,8 @@ function App() {
                     currentGraph: currentGraph
             })
             setAccessToken(accessToken)
+            setIsLoadAuto(true)
+            setIsResyncDeleted(false)
             console.log("Access token saved")
         }
     }

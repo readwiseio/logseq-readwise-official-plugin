@@ -492,7 +492,7 @@ export async function syncHighlights(auto?: boolean, setNotification?, setIsSync
 
 function checkForCurrentGraph() {
     window.logseq.App.getCurrentGraph().then((currentGraph) => {
-        if (currentGraph?.url !== logseq.settings!.currentGraph.url) {
+        if (logseq.settings!.currentGraph && currentGraph?.url !== logseq.settings!.currentGraph.url) {
             // @ts-ignore
             window.onAnotherGraph = true
             logseq.App.showMsg(`Readwise is connected to your other graph ${logseq.settings!.currentGraph.name}. Please switch to that to sync your latest highlights`, "error")
@@ -588,7 +588,7 @@ function main() {
     })
 
     // check current state
-    if (logseq.settings!.currentSyncStatusID !== 0) {
+    if (logseq.settings!.readwiseAccessToken && logseq.settings!.currentSyncStatusID !== 0) {
         // the last sync didn't finish correctly (initial phase)
         (new Promise(r => setTimeout(r, 2000))).then(() => {
                 logseq.App.showMsg("Readwise sync didn't finish correctly, please start a new sync again", "warning")
@@ -605,7 +605,7 @@ function main() {
     resyncDeleted()
     // next we auto sync
     if (logseq.settings!.readwiseAccessToken && logseq.settings!.isLoadAuto) {
-        if (!onAnotherGraph) {
+        if (!onAnotherGraph && logseq.settings!.currentSyncStatusID === 0) {
             // eslint-disable-next-line @typescript-eslint/no-empty-function
             syncHighlights(true, console.log, () => {
             }).then(() => console.log('Auto sync loaded.'))
