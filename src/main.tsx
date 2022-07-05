@@ -490,16 +490,10 @@ export async function syncHighlights(auto?: boolean, setNotification?, setIsSync
     setIsSyncing(false)
 }
 
-function checkForCurrentGraph() {
+export function checkForCurrentGraph() {
     window.logseq.App.getCurrentGraph().then((currentGraph) => {
-        if (logseq.settings!.currentGraph && currentGraph?.url !== logseq.settings!.currentGraph.url) {
-            // @ts-ignore
-            window.onAnotherGraph = true
-            logseq.App.showMsg(`Readwise is connected to your other graph ${logseq.settings!.currentGraph.name}. Please switch to that to sync your latest highlights`, "error")
-        } else {
-            // @ts-ignore
-            window.onAnotherGraph = false
-        }
+        // @ts-ignore
+        window.onAnotherGraph = !!(logseq.settings!.currentGraph && currentGraph?.url !== logseq.settings!.currentGraph.url);
     })
 }
 

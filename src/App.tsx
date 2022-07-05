@@ -1,11 +1,9 @@
 import React, {useEffect, useRef, useState} from "react"
 import {useAppVisible} from "./utils"
 import "./App.css"
-import {getUserAuthToken, syncHighlights, removeDocuments, baseURL, clearSettingsComplete} from "./main"
+import {getUserAuthToken, syncHighlights, removeDocuments, baseURL, clearSettingsComplete, checkForCurrentGraph} from "./main"
 
 function App() {
-    // @ts-ignore
-    const onAnotherGraph = window.onAnotherGraph
     const innerRef = useRef<HTMLDivElement>(null)
     const visible = useAppVisible()
     const [accessToken, setAccessToken] = useState(logseq.settings!.readwiseAccessToken)
@@ -33,8 +31,10 @@ function App() {
     }
 
     async function initiateSync() {
-        if (onAnotherGraph) {
-            logseq.App.showMsg(`Readwise is connected to your other graph ${logseq.settings!.currentGraph.name}. Please switch to that to sync your latest highlights`, "error")
+        checkForCurrentGraph()
+        // @ts-ignore
+        if (window.onAnotherGraph) {
+            logseq.App.showMsg(`Readwise is connected to your other graph ${logseq.settings!.currentGraph.name}. Please switch to that to sync your latest highlights`, "warning")
             return
         }
         setIsSyncing(true)
