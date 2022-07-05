@@ -1,3 +1,10 @@
+## [1.2.3](https://github.com/readwiseio/logseq-readwise-official-plugin/compare/v1.2.2...v1.2.3) (2022-07-05)
+
+
+### Bug Fixes
+
+* Change multiple graphs notification ([8bfbdf9](https://github.com/readwiseio/logseq-readwise-official-plugin/commit/8bfbdf93bd51bed4bd6c82694400dff74a5ede63))
+
 ## [1.2.2](https://github.com/readwiseio/logseq-readwise-official-plugin/compare/v1.2.1...v1.2.2) (2022-07-01)
 
 
