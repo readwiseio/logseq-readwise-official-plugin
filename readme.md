@@ -28,9 +28,11 @@ Note: This plugin requires a subscription with [Readwise](https://readwise.io) �
 
 ## Support
 
-* Please see our [Documentation]() or email us at hello@readwise.io 🙂
+* Please see our [Documentation](https://help.readwise.io/article/138-how-does-the-readwise-to-logseq-export-integration-work) or email us at hello@readwise.io 🙂
 
 
 ## **Community Resources**
 
-- To be updated! If you’ve made a resource you’d like shared here, please email Erin at erin@readwise.io and we’ll promptly add 🙂
+- [How I use the Logseq Readwise plugin in my Zettelkasten](https://wilde-at-heart.garden/pages/how-i-use-the-logseq-readwise-plugin-in-my-zettelkasten/) article by Jay L. Colbert
+
+If you’ve made a resource you’d like shared here, please email Erin at erin@readwise.io and we’ll promptly add 🙂
