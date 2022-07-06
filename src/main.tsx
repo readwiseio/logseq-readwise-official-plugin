@@ -404,6 +404,21 @@ async function getExportStatus(statusID?: number, setNotification?, setIsSyncing
     setIsSyncing(false)
 }
 
+function configureSchedule() {
+    checkForCurrentGraph()
+    // @ts-ignore
+    const onAnotherGraph = window.onAnotherGraph
+    if (logseq.settings!.readwiseAccessToken && logseq.settings!.frequency) {
+        if (!onAnotherGraph) {
+            const milliseconds = logseq.settings!.frequency * 60 * 1000
+            // eslint-disable-next-line @typescript-eslint/no-empty-function
+            window.setInterval(() => syncHighlights(true, console.log, () => {
+            }).then(() => console.log('Auto sync loaded.')), milliseconds)
+        }
+    }
+}
+
+
 function resyncDeleted() {
     checkForCurrentGraph()
     // @ts-ignore
@@ -512,6 +527,13 @@ function main() {
             default: false,
             title: "Resync deleted pages",
             description: "If enabled, you can refresh individual items by deleting the page in Logseq and initiating a resync",
+        },
+        {
+            key: "frequency",
+            type: "number",
+            default: 60,
+            title: "Resync frequency",
+            description: "Readwise will automatically resync with Logseq when the app is open at the specified interval",
         }
     ]
     logseq.useSettingsSchema(schema)
@@ -605,6 +627,8 @@ function main() {
             }).then(() => console.log('Auto sync loaded.'))
         }
     }
+    // we set an interval
+    configureSchedule()
 }
 
 // @ts-expect-error
