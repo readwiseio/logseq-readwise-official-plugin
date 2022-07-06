@@ -1,3 +1,10 @@
+# [1.3.0](https://github.com/readwiseio/logseq-readwise-official-plugin/compare/v1.2.3...v1.3.0) (2022-07-06)
+
+
+### Features
+
+* Add resync frequency ([328235a](https://github.com/readwiseio/logseq-readwise-official-plugin/commit/328235a4e7b35d9683bd55cdf8d4ac69375346e6))
+
 ## [1.2.3](https://github.com/readwiseio/logseq-readwise-official-plugin/compare/v1.2.2...v1.2.3) (2022-07-05)
 
 
