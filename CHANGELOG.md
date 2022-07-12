@@ -1,3 +1,10 @@
+## [1.3.1](https://github.com/readwiseio/logseq-readwise-official-plugin/compare/v1.3.0...v1.3.1) (2022-07-12)
+
+
+### Bug Fixes
+
+* Multiple graphs during sync ([4c111d3](https://github.com/readwiseio/logseq-readwise-official-plugin/commit/4c111d3786c55944e2687f85bf487bb7fae86017))
+
 # [1.3.0](https://github.com/readwiseio/logseq-readwise-official-plugin/compare/v1.2.3...v1.3.0) (2022-07-06)
 
 
