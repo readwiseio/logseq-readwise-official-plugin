@@ -120,7 +120,7 @@ async function createPage(title: string, blocks: Array<IBatchBlock>) {
     })
     await new Promise(r => setTimeout(r, 500))
     const pageBlocksTree = await logseq.Editor.getPageBlocksTree(title)
-    if (pageBlocksTree.length === 0) {
+    if (pageBlocksTree !== null && pageBlocksTree.length === 0) {
         // the correct flow because we are using createFirstBlock: false
         const firstBlock = await logseq.Editor.insertBlock(page!.originalName, blocks[0].content, {
             before: false,
@@ -128,7 +128,7 @@ async function createPage(title: string, blocks: Array<IBatchBlock>) {
         })
         await logseq.Editor.insertBatchBlock(firstBlock!.uuid, blocks.slice(1), {sibling: true})
         return true
-    } else if (pageBlocksTree.length === 1) {
+    } else if (pageBlocksTree !== null && pageBlocksTree.length === 1) {
         // createFirstBlock: false creates a block to title if the name contains invalid characters
         const _first = pageBlocksTree[0]
         await logseq.Editor.updateBlock(_first!.uuid, _first.content + "\n" + blocks[0].content)
@@ -308,6 +308,13 @@ async function downloadArchive(exportID: number, setNotification?, setIsSyncing?
                 const bookData = book.data
                 booksIDsMap[bookData.title] = bookId
                 const page = await logseq.Editor.getPage(bookData.title)
+                // @ts-ignore
+                if (window.onAnotherGraph) {
+                    setIsSyncing(false)
+                    setNotification(null)
+                    handleSyncError(`Graph changed during sync, please return to ${logseq.settings!.currentGraph.name} to complete the sync`)
+                    return
+                }
                 if (page !== null) {
                     // page exists
                     if (bookIsUpdate) {
@@ -461,7 +468,7 @@ export async function syncHighlights(auto?: boolean, setNotification?, setIsSync
         resyncDeleted()
         await new Promise(r => setTimeout(r, 1000))
     }
-    const isForceCompleteSync = logseq.settings!.currentSyncStatusID !== 0
+    const isForceCompleteSync = logseq.settings!.currentSyncStatusID !== 0 || logseq.settings!.lastSyncFailed
     const parentDeleted = await logseq.Editor.getPage(parentPageName) === null || isForceCompleteSync
     if (parentDeleted) {
         url += `&parentPageDeleted=${parentDeleted}`
