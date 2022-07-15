@@ -1,3 +1,10 @@
+## [1.3.2](https://github.com/readwiseio/logseq-readwise-official-plugin/compare/v1.3.1...v1.3.2) (2022-07-15)
+
+
+### Bug Fixes
+
+* Improve resync deleted files ([ae7be9d](https://github.com/readwiseio/logseq-readwise-official-plugin/commit/ae7be9dd04685b4aedd50f982619de0e130ad82e))
+
 ## [1.3.1](https://github.com/readwiseio/logseq-readwise-official-plugin/compare/v1.3.0...v1.3.1) (2022-07-12)
 
 
