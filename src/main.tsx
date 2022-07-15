@@ -220,25 +220,29 @@ type BookToExport = [number, string]
 
 async function refreshBookExport(books: Array<BookToExport>) {
     let response, bookIds: number[]
-    try {
-        bookIds = books.map((b) => b[0])
-        response = await window.fetch(
-            `${baseURL}/api/refresh_book_export`, {
-                headers: {...getAuthHeaders(), 'Content-Type': 'application/json'},
-                method: "POST",
-                body: JSON.stringify({exportTarget: 'logseq', books: bookIds})
-            }
-        )
-    } catch (e) {
-        console.log("Readwise Official plugin: fetch failed in refreshBookExport: ", e);
-    }
-    if (response && response.ok) {
-        const booksIDsMap = logseq.settings!.booksIDsMap || {}
-        const booksIDsMapAsArray = Object.entries(booksIDsMap)
-        logseq.updateSettings({
-            // @ts-ignore
-            booksIDsMap: Object.fromEntries(booksIDsMapAsArray.filter((b) => !(b[1] in bookIds)))
-        })
+    if (books.length > 0) {
+        try {
+            bookIds = books.map((b) => b[0])
+            response = await window.fetch(
+                `${baseURL}/api/refresh_book_export`, {
+                    headers: {...getAuthHeaders(), 'Content-Type': 'application/json'},
+                    method: "POST",
+                    body: JSON.stringify({exportTarget: 'logseq', books: bookIds})
+                }
+            )
+        } catch (e) {
+            console.log("Readwise Official plugin: fetch failed in refreshBookExport: ", e);
+        }
+        if (response && response.ok) {
+            const booksIDsMap = logseq.settings!.booksIDsMap || {}
+            const booksIDsMapAsArray = Object.entries(booksIDsMap)
+            logseq.updateSettings({
+                // @ts-ignore
+                booksIDsMap: Object.fromEntries(booksIDsMapAsArray.filter((b) => !(b[1] in bookIds)))
+            })
+        }
+    } else {
+        console.log("Skipping refresh, no books")
     }
 }
 
@@ -338,17 +342,17 @@ async function downloadArchive(exportID: number, setNotification?, setIsSyncing?
                     }
                 }
             }
+            const readwisePage = await logseq.Editor.getPage(parentPageName)
+            if (readwisePage && responseJSON.syncNotification) {
+                console.log(`Updating ${parentPageName} page with sync notification`)
+                await updatePage(readwisePage, convertReadwiseToIBatchBlock(
+                    preferredDateFormat, responseJSON.syncNotification!
+                ).children!)
+            }
         }
         logseq.updateSettings({
             booksIDsMap: booksIDsMap
         })
-        const readwisePage = await logseq.Editor.getPage(parentPageName)
-        if (readwisePage) {
-            console.log(`Updating ${parentPageName} page with sync notification`)
-            await updatePage(readwisePage, convertReadwiseToIBatchBlock(
-                preferredDateFormat, responseJSON.syncNotification!
-            ).children!)
-        }
         setIsSyncing(false)
         setNotification(null)
     } else {
@@ -426,7 +430,7 @@ function configureSchedule() {
 }
 
 
-function resyncDeleted() {
+function resyncDeleted(callback: (() => void)) {
     checkForCurrentGraph()
     // @ts-ignore
     const onAnotherGraph = window.onAnotherGraph
@@ -457,59 +461,67 @@ function resyncDeleted() {
             )
         }
     }
+    (new Promise(r => setTimeout(r, 2000))).then(() => {
+            callback()
+        }
+    )
 }
 
 // @ts-ignore
 export async function syncHighlights(auto?: boolean, setNotification?, setIsSyncing?) {
-    let url = `${baseURL}/api/logseq/init?auto=${auto}`
-    if (auto) {
-        await new Promise(r => setTimeout(r, 2000))
-    } else {
-        resyncDeleted()
-        await new Promise(r => setTimeout(r, 1000))
-    }
-    const isForceCompleteSync = logseq.settings!.currentSyncStatusID !== 0 || logseq.settings!.lastSyncFailed
-    const parentDeleted = await logseq.Editor.getPage(parentPageName) === null || isForceCompleteSync
-    if (parentDeleted) {
-        url += `&parentPageDeleted=${parentDeleted}`
-    }
-    let response, data: ExportRequestResponse
-    try {
-        response = await window.fetch(
-            url,
-            {
-                headers: getAuthHeaders()
+    resyncDeleted(async () => {
+        setNotification("Starting sync...")
+        let url = `${baseURL}/api/logseq/init?auto=${auto}`
+        if (auto) {
+            await new Promise(r => setTimeout(r, 2000))
+        }
+        const isForceCompleteSync = logseq.settings!.lastSyncFailed
+        const parentDeleted = await logseq.Editor.getPage(parentPageName) === null || isForceCompleteSync
+        if (parentDeleted) {
+            url += `&parentPageDeleted=${parentDeleted}`
+        }
+        let response, data: ExportRequestResponse
+        try {
+            response = await window.fetch(
+                url,
+                {
+                    headers: getAuthHeaders()
+                }
+            )
+        } catch (e) {
+            console.log("Readwise Official plugin: fetch failed in requestArchive: ", e)
+        }
+        if (response && response.ok) {
+            data = await response.json()
+            if (data.latest_id <= logseq.settings!.lastSavedStatusID) {
+                handleSyncSuccess()
+                logseq.App.showMsg("Readwise data is already up to date")
+                setIsSyncing(false)
+                setNotification(null)
+                return
             }
-        )
-    } catch (e) {
-        console.log("Readwise Official plugin: fetch failed in requestArchive: ", e)
-    }
-    if (response && response.ok) {
-        data = await response.json()
-        if (data.latest_id <= logseq.settings!.lastSavedStatusID) {
-            handleSyncSuccess()
-            logseq.App.showMsg("Readwise data is already up to date")
+            logseq.updateSettings({
+                currentSyncStatusID: data.latest_id
+            })
+            if (response.status === 201) {
+                logseq.App.showMsg("Syncing Readwise data")
+                return getExportStatus(data.latest_id, setNotification, setIsSyncing)
+            } else {
+                setIsSyncing(false)
+                setNotification(null)
+                handleSyncSuccess("Synced", data.latest_id)
+                logseq.App.showMsg("Latest Readwise sync already happened on your other device. Data should be up to date")
+            }
+        } else {
+            console.log("Readwise Official plugin: bad response in requestArchive: ", response)
+            logseq.App.showMsg(getErrorMessageFromResponse(response as Response), "error")
             setIsSyncing(false)
+            setNotification(null)
             return
         }
-        logseq.updateSettings({
-            currentSyncStatusID: data.latest_id
-        })
-        if (response.status === 201) {
-            logseq.App.showMsg("Syncing Readwise data")
-            return getExportStatus(data.latest_id, setNotification, setIsSyncing)
-        } else {
-            setIsSyncing(false)
-            handleSyncSuccess("Synced", data.latest_id)
-            logseq.App.showMsg("Latest Readwise sync already happened on your other device. Data should be up to date")
-        }
-    } else {
-        console.log("Readwise Official plugin: bad response in requestArchive: ", response)
-        logseq.App.showMsg(getErrorMessageFromResponse(response as Response), "error")
         setIsSyncing(false)
-        return
-    }
-    setIsSyncing(false)
+        setNotification(null)
+    })
 }
 
 export function checkForCurrentGraph() {
@@ -610,10 +622,18 @@ function main() {
         `,
     })
 
+    if (logseq.settings!.currentSyncStatusID !== 0) {
+        logseq.updateSettings({
+            lastSyncFailed: true,
+            currentSyncStatusID: 0
+        })
+    }
+
+
     // check current state
     if (logseq.settings!.readwiseAccessToken && logseq.settings!.currentSyncStatusID !== 0) {
         // the last sync didn't finish correctly (initial phase)
-        (new Promise(r => setTimeout(r, 2000))).then(() => {
+        (new Promise(r => setTimeout(r, 1000))).then(() => {
                 logseq.App.showMsg("Readwise sync didn't finish correctly, please start a new sync again", "warning")
             }
         )
@@ -625,15 +645,16 @@ function main() {
     // @ts-ignore
     const onAnotherGraph = window.onAnotherGraph
     // first we check for deleted
-    resyncDeleted()
-    // next we auto sync
-    if (logseq.settings!.readwiseAccessToken && logseq.settings!.isLoadAuto) {
-        if (!onAnotherGraph && logseq.settings!.currentSyncStatusID === 0) {
-            // eslint-disable-next-line @typescript-eslint/no-empty-function
-            syncHighlights(true, console.log, () => {
-            }).then(() => console.log('Auto sync loaded.'))
+    resyncDeleted(() => {
+        // next we auto sync
+        if (logseq.settings!.readwiseAccessToken && logseq.settings!.isLoadAuto) {
+            if (!onAnotherGraph && logseq.settings!.currentSyncStatusID === 0) {
+                // eslint-disable-next-line @typescript-eslint/no-empty-function
+                syncHighlights(true, console.log, () => {
+                }).then(() => console.log('Auto sync loaded.'))
+            }
         }
-    }
+    })
     // we set an interval
     configureSchedule()
 }

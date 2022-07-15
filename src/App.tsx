@@ -46,10 +46,10 @@ function App() {
             logseq.App.showMsg(`Readwise is connected to your other graph ${logseq.settings!.currentGraph.name}. Please switch to that to sync your latest highlights`, "warning")
             return
         }
-        setIsSyncing(true)
-        if (isSyncing) {
-            logseq.App.showMsg("Readwise sync already in progress", "warning")
+        if (isSyncing || logseq.settings!.currentSyncStatusID !== 0) {
+            logseq.App.showMsg("Readwise sync is already in progress", "warning")
         } else {
+            setIsSyncing(true)
             await syncHighlights(false, setNotification, setIsSyncing)
         }
     }
@@ -60,13 +60,19 @@ function App() {
             logseq.App.showMsg(`Readwise is connected to your other graph ${logseq.settings!.currentGraph.name}. Please switch to that to reset your installation`, "warning")
             return
         }
-        const booksIDsMap = {...(logseq.settings!.booksIDsMap || {})}
-        clearSettingsComplete()
-        // @ts-ignore
-        const documentsToRemove = Object.keys(booksIDsMap)
-        await removeDocuments(documentsToRemove, setNotification, setIsResetting)
-        await new Promise(r => setTimeout(r, 1000))
-        await logseq.App.relaunch()
+
+        if (isResetting || logseq.settings!.currentSyncStatusID !== 0) {
+            logseq.App.showMsg("Readwise plugin is busy right now, wait a moment", "warning")
+        } else {
+            const booksIDsMap = {...(logseq.settings!.booksIDsMap || {})}
+            clearSettingsComplete()
+            // @ts-ignore
+            const documentsToRemove = Object.keys(booksIDsMap)
+            await removeDocuments(documentsToRemove, setNotification, setIsResetting)
+            await new Promise(r => setTimeout(r, 1000))
+            await logseq.App.relaunch()
+        }
+
     }
 
     function openPreferences() {
@@ -105,7 +111,8 @@ function App() {
                                         fill="black"/>
                                 </svg>
                             </button>
-                            {currentGraph && (<span className="text-sm text-gray-500">Connected to (graph): {currentGraph.name}</span>)}
+                            {currentGraph && (<span
+                                className="text-sm text-gray-500">Connected to (graph): {currentGraph.name}</span>)}
                         </div>
                     </div>
                     <hr className="w-full mt-3 mb-3"/>
