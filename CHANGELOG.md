@@ -1,3 +1,10 @@
+## [1.3.3](https://github.com/readwiseio/logseq-readwise-official-plugin/compare/v1.3.2...v1.3.3) (2022-07-18)
+
+
+### Bug Fixes
+
+* Change frequency to fixed options ([88fda40](https://github.com/readwiseio/logseq-readwise-official-plugin/commit/88fda40776f710b095f73dc44ba0543f10d2a02c))
+
 ## [1.3.2](https://github.com/readwiseio/logseq-readwise-official-plugin/compare/v1.3.1...v1.3.2) (2022-07-15)
 
 
