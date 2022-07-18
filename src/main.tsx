@@ -421,10 +421,19 @@ function configureSchedule() {
     const onAnotherGraph = window.onAnotherGraph
     if (logseq.settings!.readwiseAccessToken && logseq.settings!.frequency) {
         if (!onAnotherGraph) {
-            const milliseconds = logseq.settings!.frequency * 60 * 1000
-            // eslint-disable-next-line @typescript-eslint/no-empty-function
-            window.setInterval(() => syncHighlights(true, console.log, () => {
-            }).then(() => console.log('Auto sync loaded.')), milliseconds)
+            const frequency = parseInt(logseq.settings!.frequency)
+            if (!isNaN(frequency) && frequency > 0) {
+                const milliseconds = frequency * 60 * 1000
+                // eslint-disable-next-line @typescript-eslint/no-empty-function
+                window.setInterval(() => syncHighlights(true, console.log, () => {
+                }).then(() => console.log('Auto sync loaded.')), milliseconds)
+            } else {
+                // setting the default value on settings, for previous values
+                logseq.updateSettings({
+                    frequency: "60",
+                })
+            }
+
         }
     }
 }
@@ -549,10 +558,12 @@ function main() {
         },
         {
             key: "frequency",
-            type: "number",
-            default: 60,
+            type: "enum",
+            enumChoices: ["15", "30", "60", "90"],
+            enumPicker: "select",
+            default: "60",
             title: "Resync frequency",
-            description: "Readwise will automatically resync with Logseq when the app is open at the specified interval",
+            description: "Readwise will automatically resync with Logseq when the app is open at the specified interval (in minutes)",
         }
     ]
     logseq.useSettingsSchema(schema)
