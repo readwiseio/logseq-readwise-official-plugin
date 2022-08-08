@@ -1,3 +1,10 @@
+## [1.3.4](https://github.com/readwiseio/logseq-readwise-official-plugin/compare/v1.3.3...v1.3.4) (2022-08-08)
+
+
+### Bug Fixes
+
+* Missing page updates ([389e1b3](https://github.com/readwiseio/logseq-readwise-official-plugin/commit/389e1b32d375f6ed862430eea8d7eac9ad6e08bf))
+
 ## [1.3.3](https://github.com/readwiseio/logseq-readwise-official-plugin/compare/v1.3.2...v1.3.3) (2022-07-18)
 
 
