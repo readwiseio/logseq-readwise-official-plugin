@@ -17,10 +17,10 @@ specifiers:
   eslint: 8.17.0
   eslint-plugin-react: 7.30.0
   eslint-plugin-react-hooks: 4.6.0
-  node-fetch: 3.2.6
+  node-fetch: '>=3.2.10'
   react: ^18.0.0
   react-dom: ^18.0.0
-  react-use: ^17.3.2
+  react-use: ^17.4.0
   semantic-release: 19.0.3
   typescript: 4.7.3
   vite: 2.9.12
@@ -33,7 +33,7 @@ dependencies:
   date-fns: 2.28.0
   react: 18.1.0
   react-dom: 18.1.0_react@18.1.0
-  react-use: 17.3.2_ef5jwxihqo6n7gxfmzogljlgcm
+  react-use: 17.4.0_ef5jwxihqo6n7gxfmzogljlgcm
 
 devDependencies:
   '@semantic-release/changelog': 6.0.1_semantic-release@19.0.3
@@ -50,7 +50,7 @@ devDependencies:
   eslint: 8.17.0
   eslint-plugin-react: 7.30.0_eslint@8.17.0
   eslint-plugin-react-hooks: 4.6.0_eslint@8.17.0
-  node-fetch: 3.2.6
+  node-fetch: 3.2.10
   semantic-release: 19.0.3
   typescript: 4.7.3
   vite: 2.9.12
@@ -2508,7 +2508,7 @@ packages:
     dev: true
 
   /isobject/3.0.1:
-    resolution: {integrity: sha1-TkMekrEalzFjaqH5yNHMvP2reN8=}
+    resolution: {integrity: sha512-WhB9zCku7EGTj/HQQRz5aUQEUeoQZH2bWcltRErOpymJ4boYE6wL9Tbr23krRPSZ+C5zqNSrSw+Cc7sZZ4b7vg==}
     engines: {node: '>=0.10.0'}
     dev: false
 
@@ -2886,8 +2886,8 @@ packages:
       whatwg-url: 5.0.0
     dev: true
 
-  /node-fetch/3.2.6:
-    resolution: {integrity: sha512-LAy/HZnLADOVkVPubaxHDft29booGglPFDr2Hw0J1AercRh01UiVFm++KMDnJeH9sHgNB4hsXPii7Sgym/sTbw==}
+  /node-fetch/3.2.10:
+    resolution: {integrity: sha512-MhuzNwdURnZ1Cp4XTazr69K0BTizsBroX7Zx3UgDSVcZYKF/6p0CBe4EUb/hLqmzVhl0UpYfgRljQ4yxE+iCxA==}
     engines: {node: ^12.20.0 || ^14.13.1 || >=16.0.0}
     dependencies:
       data-uri-to-buffer: 4.0.0
@@ -3342,11 +3342,11 @@ packages:
       tslib: 2.4.0
     dev: false
 
-  /react-use/17.3.2_ef5jwxihqo6n7gxfmzogljlgcm:
-    resolution: {integrity: sha512-bj7OD0/1wL03KyWmzFXAFe425zziuTf7q8olwCYBfOeFHY1qfO1FAMjROQLsLZYwG4Rx63xAfb7XAbBrJsZmEw==}
+  /react-use/17.4.0_ef5jwxihqo6n7gxfmzogljlgcm:
+    resolution: {integrity: sha512-TgbNTCA33Wl7xzIJegn1HndB4qTS9u03QUwyNycUnXaweZkE4Kq2SB+Yoxx8qbshkZGYBDvUXbXWRUmQDcZZ/Q==}
     peerDependencies:
-      react: ^16.8.0  || ^17.0.0
-      react-dom: ^16.8.0  || ^17.0.0
+      react: ^16.8.0  || ^17.0.0 || ^18.0.0
+      react-dom: ^16.8.0  || ^17.0.0 || ^18.0.0
     dependencies:
       '@types/js-cookie': 2.2.7
       '@xobotyi/scrollbar-width': 1.9.5
@@ -3667,7 +3667,7 @@ packages:
     dev: true
 
   /source-map/0.5.6:
-    resolution: {integrity: sha1-dc449SvwczxafwwRjYEzSiu19BI=}
+    resolution: {integrity: sha512-MjZkVp0NHr5+TPihLcadqnlVoGIoWo4IBHptutGh9wI3ttUYvCG26HkSuDi+K6lsZ25syXJXcctwgyVCt//xqA==}
     engines: {node: '>=0.10.0'}
     dev: false
 
@@ -3929,7 +3929,7 @@ packages:
     dev: true
 
   /toggle-selection/1.0.6:
-    resolution: {integrity: sha1-bkWxJj8gF/oKzH2J14sVuL932jI=}
+    resolution: {integrity: sha512-BiZS+C1OS8g/q2RRbJmy59xpyghNBqrr6k5L/uKBGRsTfxmu3ffiRnd8mlGPUVayg8pvfi5urfnu8TU7DVOkLQ==}
     dev: false
 
   /tr46/0.0.3:
