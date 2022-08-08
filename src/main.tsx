@@ -343,6 +343,12 @@ async function downloadArchive(exportID: number, setNotification?, setIsSyncing?
                 }
             }
             const readwisePage = await logseq.Editor.getPage(parentPageName)
+            if (readwisePage === null) {
+                await logseq.Editor.createPage(parentPageName, {'title': parentPageName}, {
+                    createFirstBlock: false,
+                    redirect: false
+                })
+            }
             if (readwisePage && responseJSON.syncNotification) {
                 console.log(`Updating ${parentPageName} page with sync notification`)
                 await updatePage(readwisePage, convertReadwiseToIBatchBlock(
