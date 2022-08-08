@@ -1,3 +1,10 @@
+## [1.3.5](https://github.com/readwiseio/logseq-readwise-official-plugin/compare/v1.3.4...v1.3.5) (2022-08-08)
+
+
+### Bug Fixes
+
+* Update deps ([2644376](https://github.com/readwiseio/logseq-readwise-official-plugin/commit/2644376df5e6e4a9b09f54cc9c105053e4fb590b))
+
 ## [1.3.4](https://github.com/readwiseio/logseq-readwise-official-plugin/compare/v1.3.3...v1.3.4) (2022-08-08)
 
 
