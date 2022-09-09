@@ -175,12 +175,12 @@ function getAuthHeaders() {
     }
 }
 
-function handleSyncError(msg: string) {
+function handleSyncError(notificationCallback: () => void) {
     clearSettingsAfterRun()
     logseq.updateSettings({
         lastSyncFailed: true
     })
-    logseq.App.showMsg(msg, "error")
+    notificationCallback()
 }
 
 function clearSettingsAfterRun() {
@@ -280,7 +280,7 @@ export async function removeDocuments(documentsToRemove: Array<string>, setNotif
 }
 
 // @ts-ignore
-async function downloadArchive(exportID: number, setNotification?, setIsSyncing?): Promise<void> {
+async function downloadArchive(exportID: number, setNotification?, setIsSyncing?, auto?): Promise<void> {
     const artifactURL = `${baseURL}/api/download_artifact/${exportID}`
     if (exportID <= logseq.settings!.lastSavedStatusID) {
         console.log(`Readwise Official plugin: Already saved data from export ${exportID}`)
@@ -316,7 +316,14 @@ async function downloadArchive(exportID: number, setNotification?, setIsSyncing?
                 if (window.onAnotherGraph) {
                     setIsSyncing(false)
                     setNotification(null)
-                    handleSyncError(`Graph changed during sync, please return to ${logseq.settings!.currentGraph.name} to complete the sync`)
+                    handleSyncError(() => {
+                        const msg = `Graph changed during sync, please return to graph "${logseq.settings!.currentGraph.name}" to complete the sync`
+                        if (!auto) {
+                            logseq.App.showMsg(msg, "error")
+                        } else {
+                            console.log(msg)
+                        }
+                    })
                     return
                 }
                 if (page !== null) {
@@ -377,7 +384,7 @@ async function downloadArchive(exportID: number, setNotification?, setIsSyncing?
 }
 
 // @ts-ignore
-async function getExportStatus(statusID?: number, setNotification?, setIsSyncing?) {
+async function getExportStatus(statusID?: number, setNotification?, setIsSyncing?, auto?) {
     const statusId = statusID || logseq.settings!.currentSyncStatusID
     const url = `${baseURL}/api/get_export_status?exportStatusId=${statusId}`
     let response, data: ExportStatusResponse
@@ -408,14 +415,22 @@ async function getExportStatus(statusID?: number, setNotification?, setIsSyncing
         }
         // re-try in 2 secs
         await new Promise(r => setTimeout(r, 2000))
-        await getExportStatus(statusId, setNotification, setIsSyncing)
+        await getExportStatus(statusId, setNotification, setIsSyncing, auto)
     } else if (SUCCESS_STATUSES.includes(data.taskStatus)) {
         setNotification(null)
-        return downloadArchive(statusId, setNotification, setIsSyncing)
+        return downloadArchive(statusId, setNotification, setIsSyncing, auto)
     } else {
         setNotification(null)
         setIsSyncing(false)
-        handleSyncError("Sync failed")
+        handleSyncError(() => {
+                const msg = 'Sync failed'
+                if (!auto) {
+                    logseq.App.showMsg(msg, "error")
+                } else {
+                    console.log(msg)
+                }
+            }
+        )
     }
     setNotification(null)
     setIsSyncing(false)
@@ -520,7 +535,7 @@ export async function syncHighlights(auto?: boolean, setNotification?, setIsSync
             })
             if (response.status === 201) {
                 logseq.App.showMsg("Syncing Readwise data")
-                return getExportStatus(data.latest_id, setNotification, setIsSyncing)
+                return getExportStatus(data.latest_id, setNotification, setIsSyncing, auto)
             } else {
                 setIsSyncing(false)
                 setNotification(null)

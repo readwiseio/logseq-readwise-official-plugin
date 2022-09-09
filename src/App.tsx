@@ -43,7 +43,7 @@ function App() {
         checkForCurrentGraph()
         // @ts-ignore
         if (window.onAnotherGraph) {
-            logseq.App.showMsg(`Readwise is connected to your other graph ${logseq.settings!.currentGraph.name}. Please switch to that to sync your latest highlights`, "warning")
+            logseq.App.showMsg(`Readwise is connected to your other graph "${logseq.settings!.currentGraph.name}". Please switch to that to sync your latest highlights`, "warning")
             return
         }
         if (isSyncing || logseq.settings!.currentSyncStatusID !== 0) {
@@ -57,7 +57,7 @@ function App() {
     async function clearInstallation() {
         // @ts-ignore
         if (window.onAnotherGraph) {
-            logseq.App.showMsg(`Readwise is connected to your other graph ${logseq.settings!.currentGraph.name}. Please switch to that to reset your installation`, "warning")
+            logseq.App.showMsg(`Readwise is connected to your other graph "${logseq.settings!.currentGraph.name}". Please switch to that to reset your installation`, "warning")
             return
         }
 
