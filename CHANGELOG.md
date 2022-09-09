@@ -1,3 +1,10 @@
+## [1.3.6](https://github.com/readwiseio/logseq-readwise-official-plugin/compare/v1.3.5...v1.3.6) (2022-09-09)
+
+
+### Bug Fixes
+
+* Improve failed messages ([c30af2c](https://github.com/readwiseio/logseq-readwise-official-plugin/commit/c30af2c5ee555c013044cd253be5758c3c01928f))
+
 ## [1.3.5](https://github.com/readwiseio/logseq-readwise-official-plugin/compare/v1.3.4...v1.3.5) (2022-08-08)
 
 
