@@ -1,3 +1,10 @@
+## [1.3.7](https://github.com/readwiseio/logseq-readwise-official-plugin/compare/v1.3.6...v1.3.7) (2022-09-15)
+
+
+### Bug Fixes
+
+* Error finding page with extra whitespace ([aa040f6](https://github.com/readwiseio/logseq-readwise-official-plugin/commit/aa040f61d8698290d564b9822529ba9be3c5f8da))
+
 ## [1.3.6](https://github.com/readwiseio/logseq-readwise-official-plugin/compare/v1.3.5...v1.3.6) (2022-09-09)
 
 
