@@ -119,7 +119,7 @@ async function createPage(title: string, blocks: Array<IBatchBlock>) {
         redirect: false
     })
     await new Promise(r => setTimeout(r, 500))
-    const pageBlocksTree = await logseq.Editor.getPageBlocksTree(title)
+    const pageBlocksTree = await logseq.Editor.getPageBlocksTree(page!.name)
     if (pageBlocksTree !== null && pageBlocksTree.length === 0) {
         // the correct flow because we are using createFirstBlock: false
         const firstBlock = await logseq.Editor.insertBlock(page!.originalName, blocks[0].content, {
