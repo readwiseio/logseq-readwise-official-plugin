@@ -1,3 +1,10 @@
+## [1.3.8](https://github.com/readwiseio/logseq-readwise-official-plugin/compare/v1.3.7...v1.3.8) (2022-10-14)
+
+
+### Bug Fixes
+
+* Add never to frequency options ([b9fd37b](https://github.com/readwiseio/logseq-readwise-official-plugin/commit/b9fd37b9eb7c1d3cce3209d0849777a229e8bf89))
+
 ## [1.3.7](https://github.com/readwiseio/logseq-readwise-official-plugin/compare/v1.3.6...v1.3.7) (2022-09-15)
 
 
