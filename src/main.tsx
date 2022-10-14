@@ -441,6 +441,9 @@ function configureSchedule() {
     // @ts-ignore
     const onAnotherGraph = window.onAnotherGraph
     if (logseq.settings!.readwiseAccessToken && logseq.settings!.frequency) {
+        if (logseq.settings!.frequency === "Never") {
+            return
+        }
         if (!onAnotherGraph) {
             const frequency = parseInt(logseq.settings!.frequency)
             if (!isNaN(frequency) && frequency > 0) {
@@ -580,7 +583,7 @@ function main() {
         {
             key: "frequency",
             type: "enum",
-            enumChoices: ["15", "30", "60", "90"],
+            enumChoices: ["15", "30", "60", "90", "Never"],
             enumPicker: "select",
             default: "60",
             title: "Resync frequency",
