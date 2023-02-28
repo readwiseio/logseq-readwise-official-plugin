@@ -1,3 +1,10 @@
+## [1.3.9](https://github.com/readwiseio/logseq-readwise-official-plugin/compare/v1.3.8...v1.3.9) (2023-02-28)
+
+
+### Bug Fixes
+
+* update logseq sdk ([73cc82f](https://github.com/readwiseio/logseq-readwise-official-plugin/commit/73cc82fce1dd4ece9f00f93bd9903301fd98a613))
+
 ## [1.3.8](https://github.com/readwiseio/logseq-readwise-official-plugin/compare/v1.3.7...v1.3.8) (2022-10-14)
 
 
