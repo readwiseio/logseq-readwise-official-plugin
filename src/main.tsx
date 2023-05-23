@@ -127,13 +127,13 @@ async function createPage(title: string, blocks: Array<IBatchBlock>) {
             isPageBlock: true
         })
         await logseq.Editor.insertBatchBlock(firstBlock!.uuid, blocks.slice(1), {sibling: true})
-        return true
+        return page
     } else if (pageBlocksTree !== null && pageBlocksTree.length === 1) {
         // createFirstBlock: false creates a block to title if the name contains invalid characters
         const _first = pageBlocksTree[0]
         await logseq.Editor.updateBlock(_first!.uuid, _first.content + "\n" + blocks[0].content)
         await logseq.Editor.insertBatchBlock(_first!.uuid, blocks.slice(1), {sibling: true})
-        return true
+        return page
     }
     logseq.App.showMsg(`Error creating "${title}", page not created`, "warning")
     return false
@@ -141,11 +141,11 @@ async function createPage(title: string, blocks: Array<IBatchBlock>) {
 
 
 async function updatePage(page: PageEntity, blocks: Array<IBatchBlock>) {
-    const pageBlocksTree = await logseq.Editor.getPageBlocksTree(page.originalName)
+    const pageBlocksTree = await logseq.Editor.getPageBlocksTree(page.uuid)
     // uuid isn't working: https://github.com/logseq/logseq/issues/4920
     await new Promise(r => setTimeout(r, 500))
     if (pageBlocksTree.length === 0) {
-        const firstBlock = await logseq.Editor.insertBlock(page!.originalName, blocks[0].content, {
+        const firstBlock = await logseq.Editor.insertBlock(page!.uuid, blocks[0].content, {
             before: false,
             isPageBlock: true
         })
@@ -156,6 +156,51 @@ async function updatePage(page: PageEntity, blocks: Array<IBatchBlock>) {
     } else {
         logseq.App.showMsg(`Error updating "${page.originalName}", page not loaded`, "error")
     }
+}
+
+function checkAndMigrateBooksIDsMap() {
+    // check booksIDsMap format and migrate old format
+    console.log("Readwise Official plugin: checking booksIDsMap format")
+    if (logseq.settings!.booksIDsMap) {
+        const booksIDsMap = logseq.settings!.booksIDsMap
+        let isOldFormat = false
+        for (const key in booksIDsMap) {
+            if (!Number.isInteger(key) && typeof booksIDsMap[key] === "number") {
+                isOldFormat = true
+                logseq.updateSettings({
+                    booksIDsMap: null
+                })
+                break
+            }
+        }
+        if (isOldFormat) {
+            console.log("Readwise Official plugin: migrating booksIDsMap format")
+            const newBooksIDsMap: any = {}
+            Promise.all(Object.keys(booksIDsMap).map((bookTitle) => {
+                return new Promise((resolve) => {
+                    logseq.Editor.getPage(bookTitle).then((page) => {
+                        if (page) {
+                            const bookId = booksIDsMap[bookTitle]
+                            if (bookId) {
+                                console.log(`Readwise Official plugin: migrating book ${bookTitle} (${bookId})`)
+                                newBooksIDsMap[bookId] = page!.uuid
+                                resolve(bookId)
+                            }
+                        }
+                    })
+                })
+            })).then(() => {
+                // @ts-ignore
+                console.log("Readwise Official plugin: saving new booksIDsMap format")
+                logseq.updateSettings({
+                    booksIDsMap: newBooksIDsMap
+                })
+            })
+        } else {
+            console.log("Readwise Official plugin: booksIDsMap format is correct")
+        }
+    }
+
 }
 
 function getErrorMessageFromResponse(response: Response) {
@@ -238,7 +283,7 @@ async function refreshBookExport(books: Array<BookToExport>) {
             const booksIDsMapAsArray = Object.entries(booksIDsMap)
             logseq.updateSettings({
                 // @ts-ignore
-                booksIDsMap: Object.fromEntries(booksIDsMapAsArray.filter((b) => !(b[1] in bookIds)))
+                booksIDsMap: Object.fromEntries(booksIDsMapAsArray.filter((b) => !(b[0] in bookIds)))
             })
         }
     } else {
@@ -310,8 +355,11 @@ async function downloadArchive(exportID: number, setNotification?, setIsSyncing?
                 const bookId = book.userBookExportId
                 const bookIsUpdate = book.isUpdate
                 const bookData = book.data
-                booksIDsMap[bookData.title] = bookId
-                const page = await logseq.Editor.getPage(bookData.title)
+                const localId = booksIDsMap[bookId]
+                let page = null
+                if (localId) {
+                    page = await logseq.Editor.getPage(localId)
+                }
                 // @ts-ignore
                 if (window.onAnotherGraph) {
                     setIsSyncing(false)
@@ -342,8 +390,9 @@ async function downloadArchive(exportID: number, setNotification?, setIsSyncing?
                 } else {
                     const convertedNewBook = convertReadwiseToIBatchBlock(preferredDateFormat, bookData)
                     if (convertedNewBook !== undefined) {
-                        const created = await createPage(bookData.title, convertedNewBook!.children!)
-                        if (created) {
+                        const page = await createPage(bookData.title, convertedNewBook!.children!)
+                        if (page) {
+                            booksIDsMap[bookId] = page.uuid
                             setNotification(`Creating "${bookData.title}" completed (${index}/${books.length})`)
                         }
                     }
@@ -472,12 +521,12 @@ function resyncDeleted(callback: (() => void)) {
             (new Promise(r => setTimeout(r, 2000))).then(() => {
                     const booksIDsMap = logseq.settings!.booksIDsMap || {}
                     // @ts-ignore
-                    Promise.all(Object.keys(booksIDsMap).map((bookName) => {
+                    Promise.all(Object.keys(booksIDsMap).map((userBookId) => {
                         return new Promise((resolve) => {
-                            logseq.Editor.getPage(bookName).then((res) => {
+                            logseq.Editor.getPage(booksIDsMap[userBookId]).then((res) => {
                                 if (res === null) {
-                                    resolve(([booksIDsMap[bookName], bookName]))
-                                    console.log(`Page '${bookName}' deleted, going to resync.`)
+                                    resolve(([booksIDsMap[userBookId], userBookId]))
+                                    console.log(`Page UserBook ID: '${userBookId}' deleted, going to resync.`)
                                 } else {
                                     resolve(null)
                                 }
@@ -601,6 +650,8 @@ function main() {
         </React.StrictMode>
     )
 
+    checkAndMigrateBooksIDsMap()
+
     function createModel() {
         return {
             async show() {
@@ -663,7 +714,6 @@ function main() {
             currentSyncStatusID: 0
         })
     }
-
 
     // check current state
     if (logseq.settings!.readwiseAccessToken && logseq.settings!.currentSyncStatusID !== 0) {
