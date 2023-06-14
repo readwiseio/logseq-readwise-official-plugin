@@ -1,3 +1,10 @@
+## [1.3.10](https://github.com/readwiseio/logseq-readwise-official-plugin/compare/v1.3.9...v1.3.10) (2023-06-14)
+
+
+### Bug Fixes
+
+* Dash parsing error ([ad313b4](https://github.com/readwiseio/logseq-readwise-official-plugin/commit/ad313b4255dad6c3478fb0938473111f00f4d52f))
+
 ## [1.3.9](https://github.com/readwiseio/logseq-readwise-official-plugin/compare/v1.3.8...v1.3.9) (2023-02-28)
 
 
