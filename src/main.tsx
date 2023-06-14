@@ -38,6 +38,15 @@ interface ExportStatusResponse {
     taskStatus: string,
 }
 
+function escapeDash(inputString: string): string {
+    // fix: https://github.com/logseq/logseq/issues/5664
+    if (inputString) {
+        return inputString.replace(/-/g, '\\-');
+    } else {
+        return inputString
+    }
+}
+
 function getLogseqClientID() {
     let clientId = window.localStorage.getItem('rw-LogseqClientId')
     if (clientId) {
@@ -103,7 +112,7 @@ function processBlockContent(content: string, preferredDateFormat: string) {
 function convertReadwiseToIBatchBlock(preferredDateFormat: string, obj: ReadwiseBlock) {
     // we ignore the first one (which we can consider as the block title)
     const block: IBatchBlock = {
-        content: processBlockContent(obj.string, preferredDateFormat)!,
+        content: escapeDash(processBlockContent(obj.string, preferredDateFormat))!,
     }
     if (obj.children !== undefined) {
         block.children = obj.children.map(partial(convertReadwiseToIBatchBlock, preferredDateFormat)).filter(
