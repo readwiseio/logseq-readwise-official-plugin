@@ -38,6 +38,10 @@ interface ExportStatusResponse {
     taskStatus: string,
 }
 
+async function delay(ms: number) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 function getLogseqClientID() {
     let clientId = window.localStorage.getItem('rw-LogseqClientId')
     if (clientId) {
@@ -118,7 +122,7 @@ async function createPage(title: string, blocks: Array<IBatchBlock>) {
         createFirstBlock: false,
         redirect: false
     })
-    await new Promise(r => setTimeout(r, 500))
+    await delay(500)
     const pageBlocksTree = await logseq.Editor.getPageBlocksTree(page!.name)
     if (pageBlocksTree !== null && pageBlocksTree.length === 0) {
         // the correct flow because we are using createFirstBlock: false
@@ -142,8 +146,7 @@ async function createPage(title: string, blocks: Array<IBatchBlock>) {
 
 async function updatePage(page: PageEntity, blocks: Array<IBatchBlock>) {
     const pageBlocksTree = await logseq.Editor.getPageBlocksTree(page.uuid)
-    // uuid isn't working: https://github.com/logseq/logseq/issues/4920
-    await new Promise(r => setTimeout(r, 500))
+    await delay(500)
     if (pageBlocksTree.length === 0) {
         const firstBlock = await logseq.Editor.insertBlock(page!.uuid, blocks[0].content, {
             before: false,
@@ -463,7 +466,7 @@ async function getExportStatus(statusID?: number, setNotification?, setIsSyncing
             setNotification("Building export...")
         }
         // re-try in 2 secs
-        await new Promise(r => setTimeout(r, 2000))
+        await delay(2000)
         await getExportStatus(statusId, setNotification, setIsSyncing, auto)
     } else if (SUCCESS_STATUSES.includes(data.taskStatus)) {
         setNotification(null)
@@ -555,7 +558,7 @@ export async function syncHighlights(auto?: boolean, setNotification?, setIsSync
         setNotification("Starting sync...")
         let url = `${baseURL}/api/logseq/init?auto=${auto}`
         if (auto) {
-            await new Promise(r => setTimeout(r, 2000))
+            await delay(2000)
         }
         const isForceCompleteSync = logseq.settings!.lastSyncFailed
         const parentDeleted = await logseq.Editor.getPage(parentPageName) === null || isForceCompleteSync
