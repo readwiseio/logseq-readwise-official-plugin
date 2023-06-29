@@ -176,15 +176,10 @@ function checkAndMigrateBooksIDsMap() {
     console.log("Readwise Official plugin: checking booksIDsMap format")
     if (logseq.settings!.booksIDsMap) {
         const booksIDsMap = logseq.settings!.booksIDsMap
+        const newBooksIDsMap = logseq.settings!.newBooksIDsMap
         let isOldFormat = false
-        for (const key in booksIDsMap) {
-            if (!Number.isInteger(key) && typeof booksIDsMap[key] === "number") {
-                isOldFormat = true
-                logseq.updateSettings({
-                    booksIDsMap: null
-                })
-                break
-            }
+        if (Object.keys(booksIDsMap).length < Object.keys(newBooksIDsMap).length) {
+            isOldFormat = true
         }
         if (isOldFormat) {
             console.log("Readwise Official plugin: migrating booksIDsMap format")
@@ -204,9 +199,9 @@ function checkAndMigrateBooksIDsMap() {
                 })
             })).then(() => {
                 // @ts-ignore
-                console.log("Readwise Official plugin: saving new booksIDsMap format")
+                console.log("Readwise Official plugin: saving new booksIDsMap format (newBooksIDsMap setting)")
                 logseq.updateSettings({
-                    booksIDsMap: newBooksIDsMap
+                    newBooksIDsMap: newBooksIDsMap
                 })
             })
         } else {
@@ -253,6 +248,7 @@ export function clearSettingsComplete() {
         lastSyncFailed: false,
         lastSavedStatusID: 0,
         booksIDsMap: null,
+        newBooksIDsMap: null,
         readwiseAccessToken: null,
         isLoadAuto: true,
         isResyncDeleted: false,
@@ -292,11 +288,11 @@ async function refreshBookExport(books: Array<BookToExport>) {
             console.log("Readwise Official plugin: fetch failed in refreshBookExport: ", e);
         }
         if (response && response.ok) {
-            const booksIDsMap = logseq.settings!.booksIDsMap || {}
+            const booksIDsMap = logseq.settings!.newBooksIDsMap || {}
             const booksIDsMapAsArray = Object.entries(booksIDsMap)
             logseq.updateSettings({
                 // @ts-ignore
-                booksIDsMap: Object.fromEntries(booksIDsMapAsArray.filter((b) => !(b[0] in bookIds)))
+                newBooksIDsMap: Object.fromEntries(booksIDsMapAsArray.filter((b) => !(b[0] in bookIds)))
             })
         }
     } else {
@@ -357,7 +353,7 @@ async function downloadArchive(exportID: number, setNotification?, setIsSyncing?
         console.log("Readwise Official plugin: fetch failed in downloadArchive: ", e)
         setIsSyncing(false)
     }
-    const booksIDsMap = logseq.settings!.booksIDsMap || {}
+    const booksIDsMap = logseq.settings!.newBooksIDsMap || {}
     const preferredDateFormat = (await logseq.App.getUserConfigs()).preferredDateFormat
     if (response && response.ok) {
         const responseJSON = await response.json()
@@ -426,7 +422,7 @@ async function downloadArchive(exportID: number, setNotification?, setIsSyncing?
             }
         }
         logseq.updateSettings({
-            booksIDsMap: booksIDsMap
+            newBooksIDsMap: booksIDsMap
         })
         setIsSyncing(false)
         setNotification(null)
