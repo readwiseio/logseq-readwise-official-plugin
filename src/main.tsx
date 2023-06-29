@@ -38,6 +38,15 @@ interface ExportStatusResponse {
     taskStatus: string,
 }
 
+function escapeDash(inputString: string): string {
+    // fix: https://github.com/logseq/logseq/issues/5664
+    if (inputString) {
+        return inputString.replace(/-/g, '\\-');
+    } else {
+        return inputString
+    }
+}
+
 function getLogseqClientID() {
     let clientId = window.localStorage.getItem('rw-LogseqClientId')
     if (clientId) {
@@ -100,6 +109,16 @@ function processBlockContent(content: string, preferredDateFormat: string) {
     }
 }
 
+function escapeBlocks(blocks: Array<IBatchBlock>) {
+    return blocks.map(b => {
+        const content = escapeDash(b.content)
+        if (b.children !== undefined) {
+            b.children = escapeBlocks(b.children)
+        }
+        return {...b, content}
+    })
+}
+
 function convertReadwiseToIBatchBlock(preferredDateFormat: string, obj: ReadwiseBlock) {
     // we ignore the first one (which we can consider as the block title)
     const block: IBatchBlock = {
@@ -126,13 +145,13 @@ async function createPage(title: string, blocks: Array<IBatchBlock>) {
             before: false,
             isPageBlock: true
         })
-        await logseq.Editor.insertBatchBlock(firstBlock!.uuid, blocks.slice(1), {sibling: true})
+        await logseq.Editor.insertBatchBlock(firstBlock!.uuid, escapeBlocks(blocks.slice(1)), {sibling: true})
         return page
     } else if (pageBlocksTree !== null && pageBlocksTree.length === 1) {
         // createFirstBlock: false creates a block to title if the name contains invalid characters
         const _first = pageBlocksTree[0]
         await logseq.Editor.updateBlock(_first!.uuid, _first.content + "\n" + blocks[0].content)
-        await logseq.Editor.insertBatchBlock(_first!.uuid, blocks.slice(1), {sibling: true})
+        await logseq.Editor.insertBatchBlock(_first!.uuid, escapeBlocks(blocks.slice(1)), {sibling: true})
         return page
     }
     logseq.App.showMsg(`Error creating "${title}", page not created`, "warning")
@@ -149,10 +168,10 @@ async function updatePage(page: PageEntity, blocks: Array<IBatchBlock>) {
             before: false,
             isPageBlock: true
         })
-        await logseq.Editor.insertBatchBlock(firstBlock!.uuid, blocks.slice(1), {sibling: true})
+        await logseq.Editor.insertBatchBlock(firstBlock!.uuid, escapeBlocks(blocks.slice(1)), {sibling: true})
     } else if (pageBlocksTree.length > 0) {
         const _last = pageBlocksTree[pageBlocksTree.length - 1]
-        await logseq.Editor.insertBatchBlock(_last!.uuid, blocks, {sibling: true})
+        await logseq.Editor.insertBatchBlock(_last!.uuid, escapeBlocks(blocks), {sibling: true})
     } else {
         logseq.App.showMsg(`Error updating "${page.originalName}", page not loaded`, "error")
     }

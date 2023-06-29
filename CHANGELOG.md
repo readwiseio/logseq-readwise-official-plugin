@@ -1,3 +1,17 @@
+## [1.3.11](https://github.com/readwiseio/logseq-readwise-official-plugin/compare/v1.3.10...v1.3.11) (2023-06-19)
+
+
+### Bug Fixes
+
+* Skip escape dash on metadata ([1886e86](https://github.com/readwiseio/logseq-readwise-official-plugin/commit/1886e868fb5702f5f0d132955be140da28bb86ac))
+
+## [1.3.10](https://github.com/readwiseio/logseq-readwise-official-plugin/compare/v1.3.9...v1.3.10) (2023-06-14)
+
+
+### Bug Fixes
+
+* Dash parsing error ([ad313b4](https://github.com/readwiseio/logseq-readwise-official-plugin/commit/ad313b4255dad6c3478fb0938473111f00f4d52f))
+
 ## [1.3.9](https://github.com/readwiseio/logseq-readwise-official-plugin/compare/v1.3.8...v1.3.9) (2023-02-28)
 
 
