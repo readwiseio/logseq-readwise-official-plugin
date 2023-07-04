@@ -1,3 +1,10 @@
+# [1.4.0](https://github.com/readwiseio/logseq-readwise-official-plugin/compare/v1.3.11...v1.4.0) (2023-07-04)
+
+
+### Features
+
+* Improve settings to avoid naming conflict ([94f6786](https://github.com/readwiseio/logseq-readwise-official-plugin/commit/94f678650fed08b48a90fe87717eca02dce64c05))
+
 ## [1.3.11](https://github.com/readwiseio/logseq-readwise-official-plugin/compare/v1.3.10...v1.3.11) (2023-06-19)
 
 
