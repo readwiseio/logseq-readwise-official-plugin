@@ -1,3 +1,10 @@
+## [1.4.3](https://github.com/readwiseio/logseq-readwise-official-plugin/compare/v1.4.2...v1.4.3) (2023-07-05)
+
+
+### Bug Fixes
+
+* Update after re-index ([20e82c4](https://github.com/readwiseio/logseq-readwise-official-plugin/commit/20e82c45aea8a4999b88a464dbc480429a95f388))
+
 ## [1.4.2](https://github.com/readwiseio/logseq-readwise-official-plugin/compare/v1.4.1...v1.4.2) (2023-07-05)
 
 
