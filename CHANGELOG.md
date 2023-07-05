@@ -1,3 +1,10 @@
+## [1.4.2](https://github.com/readwiseio/logseq-readwise-official-plugin/compare/v1.4.1...v1.4.2) (2023-07-05)
+
+
+### Bug Fixes
+
+* escape dashes at the start of the line ([b6a0c1f](https://github.com/readwiseio/logseq-readwise-official-plugin/commit/b6a0c1fab2a41da521f4659489f3103670521f32))
+
 ## [1.4.1](https://github.com/readwiseio/logseq-readwise-official-plugin/compare/v1.4.0...v1.4.1) (2023-07-05)
 
 
