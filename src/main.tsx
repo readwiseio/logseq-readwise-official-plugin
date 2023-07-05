@@ -169,7 +169,7 @@ function checkAndMigrateBooksIDsMap() {
         const booksIDsMap = logseq.settings!.booksIDsMap || {}
         const newBooksIDsMap = logseq.settings!.newBooksIDsMap || {}
         let isOldFormat = false
-        if (Object.keys(booksIDsMap).length < Object.keys(newBooksIDsMap).length) {
+        if (Object.keys(booksIDsMap).length > Object.keys(newBooksIDsMap).length) {
             isOldFormat = true
         }
         if (isOldFormat) {
