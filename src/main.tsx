@@ -166,8 +166,8 @@ function checkAndMigrateBooksIDsMap() {
     // check booksIDsMap format and migrate old format
     console.log("Readwise Official plugin: checking booksIDsMap format")
     if (logseq.settings!.booksIDsMap) {
-        const booksIDsMap = logseq.settings!.booksIDsMap
-        const newBooksIDsMap = logseq.settings!.newBooksIDsMap
+        const booksIDsMap = logseq.settings!.booksIDsMap || {}
+        const newBooksIDsMap = logseq.settings!.newBooksIDsMap || {}
         let isOldFormat = false
         if (Object.keys(booksIDsMap).length < Object.keys(newBooksIDsMap).length) {
             isOldFormat = true
