@@ -1,3 +1,10 @@
+## [1.4.4](https://github.com/readwiseio/logseq-readwise-official-plugin/compare/v1.4.3...v1.4.4) (2023-07-05)
+
+
+### Bug Fixes
+
+* Migration error ([6b60c3e](https://github.com/readwiseio/logseq-readwise-official-plugin/commit/6b60c3e02f5db92a739b3959e64eaed0ea46651d))
+
 ## [1.4.3](https://github.com/readwiseio/logseq-readwise-official-plugin/compare/v1.4.2...v1.4.3) (2023-07-05)
 
 
