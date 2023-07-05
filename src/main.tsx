@@ -362,23 +362,31 @@ async function downloadArchive(exportID: number, setNotification?, setIsSyncing?
                     })
                     return
                 }
-                if (page !== null) {
-                    // page exists
-                    if (bookIsUpdate) {
-                        const convertedUpdateBook = convertReadwiseToIBatchBlock(preferredDateFormat, bookData)
-                        if (convertedUpdateBook !== undefined) {
-                            await updatePage(page, convertedUpdateBook!.children!)
+                const convertedBook = convertReadwiseToIBatchBlock(preferredDateFormat, bookData)
+                if (bookIsUpdate) {
+                    if (page !== null) {
+                        // page exists
+                        if (convertedBook !== undefined) {
+                            await updatePage(page, convertedBook!.children!)
                             setNotification(`Updating "${bookData.title}" completed (${index}/${books.length})`)
                         }
                     } else {
-                        // trying to updating a book but during a full resync (the page already exists)
-                        setNotification(`Skipping "${bookData.title}", page already exists (${index}/${books.length})`)
+                        // page doesn't exist
+                        // check if uuid changed (it occurs when re-indexing)
+                        logseq.Editor.getPage(bookData.title).then(async (page_) => {
+                            if (page_ !== null) {
+                                booksIDsMap[bookId] = page_.uuid
+                                if (convertedBook !== undefined) {
+                                    await updatePage(page_, convertedBook!.children!)
+                                    setNotification(`Updating "${bookData.title}" completed (${index}/${books.length})`)
+                                }
+                            }
+                        })
                     }
 
                 } else {
-                    const convertedNewBook = convertReadwiseToIBatchBlock(preferredDateFormat, bookData)
-                    if (convertedNewBook !== undefined) {
-                        const page = await createPage(bookData.title, convertedNewBook!.children!)
+                    if (convertedBook !== undefined) {
+                        const page = await createPage(bookData.title, convertedBook!.children!)
                         if (page) {
                             booksIDsMap[bookId] = page.uuid
                             setNotification(`Creating "${bookData.title}" completed (${index}/${books.length})`)
@@ -386,6 +394,7 @@ async function downloadArchive(exportID: number, setNotification?, setIsSyncing?
                     }
                 }
             }
+
             const readwisePage = await logseq.Editor.getPage(parentPageName)
             if (readwisePage === null) {
                 await logseq.Editor.createPage(parentPageName, {'title': parentPageName}, {
