@@ -38,15 +38,6 @@ interface ExportStatusResponse {
     taskStatus: string,
 }
 
-function escapeDash(inputString: string): string {
-    // fix: https://github.com/logseq/logseq/issues/5664
-    if (inputString) {
-        return inputString.replace(/-/g, '\\-');
-    } else {
-        return inputString
-    }
-}
-
 async function delay(ms: number) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
@@ -68,7 +59,7 @@ export async function getUserAuthToken(attempt = 0) {
     if (attempt === 0) {
         window.open(`${baseURL}/api_auth?token=${uuid}&service=logseq`)
     }
-    await new Promise(r => setTimeout(r, 2000)) // wait until have data on cache
+    await delay(2000)
     let response, data
     try {
         response = await window.fetch(
@@ -92,7 +83,7 @@ export async function getUserAuthToken(attempt = 0) {
             return
         }
         console.log(`Readwise Official plugin: didn't get token data, retrying (attempt ${attempt + 1})`)
-        await new Promise(r => setTimeout(r, 1000))
+        await delay(1000)
         return await getUserAuthToken(attempt + 1)
     }
 }
@@ -131,7 +122,7 @@ async function createPage(title: string, blocks: Array<IBatchBlock>) {
         createFirstBlock: false,
         redirect: false
     })
-    await new Promise(r => setTimeout(r, 500))
+    await delay(500)
     const pageBlocksTree = await logseq.Editor.getPageBlocksTree(page!.name)
     if (pageBlocksTree !== null && pageBlocksTree.length === 0) {
         // the correct flow because we are using createFirstBlock: false
@@ -155,8 +146,7 @@ async function createPage(title: string, blocks: Array<IBatchBlock>) {
 
 async function updatePage(page: PageEntity, blocks: Array<IBatchBlock>) {
     const pageBlocksTree = await logseq.Editor.getPageBlocksTree(page.uuid)
-    // uuid isn't working: https://github.com/logseq/logseq/issues/4920
-    await new Promise(r => setTimeout(r, 500))
+    await delay(500)
     if (pageBlocksTree.length === 0) {
         const firstBlock = await logseq.Editor.insertBlock(page!.uuid, blocks[0].content, {
             before: false,
@@ -321,17 +311,6 @@ async function acknowledgeSyncCompleted() {
     }
 }
 
-// @ts-ignore
-export async function removeDocuments(documentsToRemove: Array<string>, setNotification?, setIsResetting?) {
-    setIsResetting(true)
-    for (const docTitle of documentsToRemove) {
-        await logseq.Editor.deletePage(docTitle)
-        setNotification(`Deleting ${docTitle}`)
-    }
-    setNotification(null)
-    setIsResetting(false)
-    await logseq.Editor.deletePage("Readwise")
-}
 
 // @ts-ignore
 async function downloadArchive(exportID: number, setNotification?, setIsSyncing?, auto?): Promise<void> {
@@ -410,7 +389,7 @@ async function downloadArchive(exportID: number, setNotification?, setIsSyncing?
             const readwisePage = await logseq.Editor.getPage(parentPageName)
             if (readwisePage === null) {
                 await logseq.Editor.createPage(parentPageName, {'title': parentPageName}, {
-                    createFirstBlock: false,
+                    createFirstBlock: true,
                     redirect: false
                 })
             }
@@ -472,7 +451,7 @@ async function getExportStatus(statusID?: number, setNotification?, setIsSyncing
             setNotification("Building export...")
         }
         // re-try in 2 secs
-        await new Promise(r => setTimeout(r, 2000))
+        await delay(2000)
         await getExportStatus(statusId, setNotification, setIsSyncing, auto)
     } else if (SUCCESS_STATUSES.includes(data.taskStatus)) {
         setNotification(null)
@@ -564,7 +543,7 @@ export async function syncHighlights(auto?: boolean, setNotification?, setIsSync
         setNotification("Starting sync...")
         let url = `${baseURL}/api/logseq/init?auto=${auto}`
         if (auto) {
-            await new Promise(r => setTimeout(r, 2000))
+            await delay(2000)
         }
         const isForceCompleteSync = logseq.settings!.lastSyncFailed
         const parentDeleted = await logseq.Editor.getPage(parentPageName) === null || isForceCompleteSync

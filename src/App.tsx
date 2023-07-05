@@ -4,10 +4,10 @@ import "./App.css"
 import {
     getUserAuthToken,
     syncHighlights,
-    removeDocuments,
     baseURL,
     clearSettingsComplete,
-    checkForCurrentGraph
+    checkForCurrentGraph,
+    parentPageName
 } from "./main"
 
 function App() {
@@ -64,11 +64,35 @@ function App() {
         if (isResetting || logseq.settings!.currentSyncStatusID !== 0) {
             logseq.App.showMsg("Readwise plugin is busy right now, wait a moment", "warning")
         } else {
-            const booksIDsMap = {...(logseq.settings!.booksIDsMap || {})}
+            const newBooksIDsMap = {...(logseq.settings!.newBooksIDsMap || {})}
             clearSettingsComplete()
             // @ts-ignore
-            const documentsToRemove = Object.keys(booksIDsMap)
-            await removeDocuments(documentsToRemove, setNotification, setIsResetting)
+            setIsResetting(true)
+            Promise.all(Object.keys(newBooksIDsMap).map((userBookId) => {
+                return new Promise((resolve) => {
+                    logseq.Editor.getPage(newBooksIDsMap[userBookId]).then((res) => {
+                        if (res !== null) {
+                            console.log(res)
+                            logseq.Editor.deletePage(res.name).then(() => {
+                                // @ts-ignore
+                                setNotification(`Deleting ${res.name}`)
+                            })
+                            resolve(res.name)
+                        } else {
+                            resolve(null)
+                        }
+                    })
+                })
+            })).then(() => {
+                // @ts-ignore
+                setNotification(null)
+                setIsResetting(false)
+                logseq.Editor.deletePage(parentPageName).then(() => {
+                    logseq.App.showMsg("Readwise plugin has been reset successfully", "success")
+                })
+            })
+
+
             await new Promise(r => setTimeout(r, 1000))
             await logseq.App.relaunch()
         }
