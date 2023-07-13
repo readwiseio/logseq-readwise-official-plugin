@@ -1,3 +1,10 @@
+## [1.4.6](https://github.com/readwiseio/logseq-readwise-official-plugin/compare/v1.4.5...v1.4.6) (2023-07-13)
+
+
+### Bug Fixes
+
+* Full export detection ([c819a1f](https://github.com/readwiseio/logseq-readwise-official-plugin/commit/c819a1f0443d658c0daac5e649f35721cd87e0a8))
+
 ## [1.4.5](https://github.com/readwiseio/logseq-readwise-official-plugin/compare/v1.4.4...v1.4.5) (2023-07-05)
 
 
