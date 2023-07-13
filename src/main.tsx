@@ -555,11 +555,11 @@ export async function syncHighlights(auto?: boolean, setNotification?, setIsSync
         if (auto) {
             await delay(2000)
         }
-        const isForceCompleteSync = logseq.settings!.lastSyncFailed
-        const parentDeleted = await logseq.Editor.getPage(parentPageName) === null || isForceCompleteSync
+        const parentDeleted = await logseq.Editor.getPage(parentPageName) === null
         if (parentDeleted) {
             url += `&parentPageDeleted=${parentDeleted}`
         }
+        url += `&lastSyncFailed=${logseq.settings!.lastSyncFailed}`
         let response, data: ExportRequestResponse
         try {
             response = await window.fetch(
