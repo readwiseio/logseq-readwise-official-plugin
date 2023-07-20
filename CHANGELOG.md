@@ -1,3 +1,10 @@
+## [1.4.9](https://github.com/readwiseio/logseq-readwise-official-plugin/compare/v1.4.8...v1.4.9) (2023-07-20)
+
+
+### Bug Fixes
+
+* Cases where we try to create an existing page ([abff906](https://github.com/readwiseio/logseq-readwise-official-plugin/commit/abff9069c3abeebad1b03498719a1b1f12a0d494))
+
 ## [1.4.8](https://github.com/readwiseio/logseq-readwise-official-plugin/compare/v1.4.7...v1.4.8) (2023-07-20)
 
 
