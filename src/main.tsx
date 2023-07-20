@@ -94,12 +94,12 @@ function processBlockContent(content: string, preferredDateFormat: string) {
         return content
             .replace(/\n(\s*)-/sm, '\n$1\\-')
             .replace(reg, function (match, timestamp) {
-            try {
-                return format(new Date(parseInt(timestamp)), preferredDateFormat)
-            } catch (e) {
-                return ""
-            }
-        })
+                try {
+                    return format(new Date(parseInt(timestamp)), preferredDateFormat)
+                } catch (e) {
+                    return ""
+                }
+            })
     } else {
         return content
     }
@@ -191,6 +191,7 @@ function checkAndMigrateBooksIDsMap() {
             })).then(() => {
                 // @ts-ignore
                 console.log("Readwise Official plugin: saving new booksIDsMap format (newBooksIDsMap setting)")
+                logseq.updateSettings({newBooksIDsMap: null})
                 logseq.updateSettings({
                     newBooksIDsMap: newBooksIDsMap
                 })
@@ -198,6 +199,8 @@ function checkAndMigrateBooksIDsMap() {
         } else {
             console.log("Readwise Official plugin: booksIDsMap format is correct")
         }
+    } else {
+        console.log("Readwise Official plugin: no booksIDsMap found, so new format is used")
     }
 
 }
@@ -264,10 +267,10 @@ function handleSyncSuccess(msg = "Synced", exportID?: number) {
 type BookToExport = [number, string]
 
 async function refreshBookExport(books: Array<BookToExport>) {
-    let response, bookIds: number[]
+    let response, bookIds: string[]
     if (books.length > 0) {
         try {
-            bookIds = books.map((b) => b[0])
+            bookIds = books.map((b) => b[1])
             response = await window.fetch(
                 `${baseURL}/api/refresh_book_export`, {
                     headers: {...getAuthHeaders(), 'Content-Type': 'application/json'},
@@ -281,9 +284,9 @@ async function refreshBookExport(books: Array<BookToExport>) {
         if (response && response.ok) {
             const booksIDsMap = logseq.settings!.newBooksIDsMap || {}
             const booksIDsMapAsArray = Object.entries(booksIDsMap)
+            logseq.updateSettings({newBooksIDsMap: null}) // bug: https://github.com/logseq/logseq/issues/4447
             logseq.updateSettings({
-                // @ts-ignore
-                newBooksIDsMap: Object.fromEntries(booksIDsMapAsArray.filter((b) => !(b[0] in bookIds)))
+                newBooksIDsMap: Object.fromEntries(booksIDsMapAsArray.filter((b) => !bookIds.includes(b[0])))
             })
         }
     } else {
@@ -410,6 +413,7 @@ async function downloadArchive(exportID: number, setNotification?, setIsSyncing?
                 ).children!)
             }
         }
+        logseq.updateSettings({newBooksIDsMap: null}) // bug: https://github.com/logseq/logseq/issues/4447
         logseq.updateSettings({
             newBooksIDsMap: booksIDsMap
         })
@@ -517,12 +521,13 @@ function resyncDeleted(callback: (() => void)) {
     if (logseq.settings!.readwiseAccessToken && logseq.settings!.isResyncDeleted) {
         if (!onAnotherGraph) {
             (new Promise(r => setTimeout(r, 2000))).then(() => {
-                    const booksIDsMap = logseq.settings!.booksIDsMap || {}
+                    const booksIDsMap = logseq.settings!.newBooksIDsMap || {}
                     // @ts-ignore
                     Promise.all(Object.keys(booksIDsMap).map((userBookId) => {
                         return new Promise((resolve) => {
                             logseq.Editor.getPage(booksIDsMap[userBookId]).then((res) => {
                                 if (res === null) {
+                                    console.log(res, booksIDsMap[userBookId], userBookId)
                                     resolve(([booksIDsMap[userBookId], userBookId]))
                                     console.log(`Page UserBook ID: '${userBookId}' deleted, going to resync.`)
                                 } else {
@@ -534,6 +539,7 @@ function resyncDeleted(callback: (() => void)) {
                         // @ts-ignore
                         refreshBookExport(r.filter(b => b !== null)).then(() => {
                             console.log('Resync deleted done.')
+                            callback()
                         })
                     })
 
@@ -541,10 +547,6 @@ function resyncDeleted(callback: (() => void)) {
             )
         }
     }
-    (new Promise(r => setTimeout(r, 2000))).then(() => {
-            callback()
-        }
-    )
 }
 
 // @ts-ignore
@@ -553,7 +555,7 @@ export async function syncHighlights(auto?: boolean, setNotification?, setIsSync
         setNotification("Starting sync...")
         let url = `${baseURL}/api/logseq/init?auto=${auto}`
         if (auto) {
-            await delay(2000)
+            await delay(4000)
         }
         const parentDeleted = await logseq.Editor.getPage(parentPageName) === null
         if (parentDeleted) {
@@ -727,17 +729,17 @@ function main() {
     })
     // @ts-ignore
     const onAnotherGraph = window.onAnotherGraph
-    // first we check for deleted
-    resyncDeleted(() => {
-        // next we auto sync
-        if (logseq.settings!.readwiseAccessToken && logseq.settings!.isLoadAuto) {
-            if (!onAnotherGraph && logseq.settings!.currentSyncStatusID === 0) {
-                // eslint-disable-next-line @typescript-eslint/no-empty-function
-                syncHighlights(true, console.log, () => {
-                }).then(() => console.log('Auto sync loaded.'))
-            }
+    if (logseq.settings!.readwiseAccessToken && logseq.settings!.isLoadAuto) {
+        if (!onAnotherGraph && logseq.settings!.currentSyncStatusID === 0) {
+            // eslint-disable-next-line @typescript-eslint/no-empty-function
+            syncHighlights(true, console.log, () => {
+            }).then(() => console.log('Auto sync loaded.'))
         }
-    })
+    } else {
+        resyncDeleted(() => {
+            console.log("Readwise Official plugin: resync deleted pages without auto sync")
+        })
+    }
     // we set an interval
     configureSchedule()
 }

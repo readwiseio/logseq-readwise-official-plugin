@@ -5,7 +5,7 @@
   "version": "1.4.6",
   "main": "dist/index.html",
   "scripts": {
-    "dev": "vite build --watch",
+    "dev": "vite",
     "build": "vite build",
     "preinstall": "npx only-allow pnpm",
     "format": "prettier --write **/*.{js,jsx,ts,tsx,vue}"
@@ -36,10 +36,10 @@
     "node-fetch": ">=3.2.10",
     "semantic-release": "19.0.3",
     "typescript": "4.7.3",
-    "vite": "2.9.12",
+    "vite": "4.4.4",
     "vite-plugin-logseq": "1.1.2",
-    "vite-plugin-windicss": "1.8.4",
-    "windicss": "3.5.4"
+    "vite-plugin-windicss": "1.9.0",
+    "windicss": "3.5.6"
   },
   "logseq": {
     "id": "logseq-readwise-official-plugin",
