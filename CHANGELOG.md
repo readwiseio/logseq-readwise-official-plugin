@@ -1,3 +1,10 @@
+## [1.4.8](https://github.com/readwiseio/logseq-readwise-official-plugin/compare/v1.4.7...v1.4.8) (2023-07-20)
+
+
+### Bug Fixes
+
+* Remove debug changes ([31cb894](https://github.com/readwiseio/logseq-readwise-official-plugin/commit/31cb8942b36300ee66682943274a414f17c8ca74))
+
 ## [1.4.7](https://github.com/readwiseio/logseq-readwise-official-plugin/compare/v1.4.6...v1.4.7) (2023-07-20)
 
 
