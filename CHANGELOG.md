@@ -1,3 +1,10 @@
+## [1.4.7](https://github.com/readwiseio/logseq-readwise-official-plugin/compare/v1.4.6...v1.4.7) (2023-07-20)
+
+
+### Bug Fixes
+
+* Resync deleted pages ([60bffc7](https://github.com/readwiseio/logseq-readwise-official-plugin/commit/60bffc768bf4012cb34331a82b36f7619a4474f7))
+
 ## [1.4.6](https://github.com/readwiseio/logseq-readwise-official-plugin/compare/v1.4.5...v1.4.6) (2023-07-13)
 
 
