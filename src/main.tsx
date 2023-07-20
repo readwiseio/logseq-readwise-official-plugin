@@ -527,7 +527,6 @@ function resyncDeleted(callback: (() => void)) {
                         return new Promise((resolve) => {
                             logseq.Editor.getPage(booksIDsMap[userBookId]).then((res) => {
                                 if (res === null) {
-                                    console.log(res, booksIDsMap[userBookId], userBookId)
                                     resolve(([booksIDsMap[userBookId], userBookId]))
                                     console.log(`Page UserBook ID: '${userBookId}' deleted, going to resync.`)
                                 } else {
@@ -539,7 +538,6 @@ function resyncDeleted(callback: (() => void)) {
                         // @ts-ignore
                         refreshBookExport(r.filter(b => b !== null)).then(() => {
                             console.log('Resync deleted done.')
-                            callback()
                         })
                     })
 
@@ -547,6 +545,10 @@ function resyncDeleted(callback: (() => void)) {
             )
         }
     }
+    (new Promise(r => setTimeout(r, 2000))).then(() => {
+            callback()
+        }
+    )
 }
 
 // @ts-ignore

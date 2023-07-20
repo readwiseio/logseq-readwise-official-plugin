@@ -72,7 +72,6 @@ function App() {
                 return new Promise((resolve) => {
                     logseq.Editor.getPage(newBooksIDsMap[userBookId]).then((res) => {
                         if (res !== null) {
-                            console.log(res)
                             logseq.Editor.deletePage(res.name).then(() => {
                                 // @ts-ignore
                                 setNotification(`Deleting ${res.name}`)
