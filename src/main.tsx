@@ -390,10 +390,17 @@ async function downloadArchive(exportID: number, setNotification?, setIsSyncing?
 
                 } else {
                     if (convertedBook !== undefined) {
-                        const page = await createPage(bookData.title, convertedBook!.children!)
-                        if (page) {
-                            booksIDsMap[bookId] = page.uuid
-                            setNotification(`Creating "${bookData.title}" completed (${index}/${books.length})`)
+                        const existing_page = await logseq.Editor.getPage(bookData.title)
+                        if (existing_page !== null) {
+                            booksIDsMap[bookId] = existing_page.uuid
+                            setNotification(`Skipping "${bookData.title}" (already created) (${index}/${books.length})`)
+                        } else {
+                            // page doesn't exist, so we create it
+                            const page = await createPage(bookData.title, convertedBook!.children!)
+                            if (page) {
+                                booksIDsMap[bookId] = page.uuid
+                                setNotification(`Creating "${bookData.title}" completed (${index}/${books.length})`)
+                            }
                         }
                     }
                 }
