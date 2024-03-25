@@ -1,3 +1,10 @@
+## [1.4.10](https://github.com/readwiseio/logseq-readwise-official-plugin/compare/v1.4.9...v1.4.10) (2024-03-25)
+
+
+### Bug Fixes
+
+* Snipd key takeways parsing errors ([80450ae](https://github.com/readwiseio/logseq-readwise-official-plugin/commit/80450ae8573fd60e725f73cc8cc36d4ca2ff51bf))
+
 ## [1.4.9](https://github.com/readwiseio/logseq-readwise-official-plugin/compare/v1.4.8...v1.4.9) (2023-07-20)
 
 
