@@ -92,7 +92,7 @@ function processBlockContent(content: string, preferredDateFormat: string) {
     const reg = new RegExp(/timestamp:\|([0-9]+)\|/i)
     if (content !== undefined) {
         return content
-            .replace(/\n(\s*)-/sm, '\n$1\\-')
+            .replaceAll(/\n(\s*)-/smg, '\n$1\\-')
             .replace(reg, function (match, timestamp) {
                 try {
                     return format(new Date(parseInt(timestamp)), preferredDateFormat)
