@@ -1,3 +1,10 @@
+## [1.4.11](https://github.com/readwiseio/logseq-readwise-official-plugin/compare/v1.4.10...v1.4.11) (2024-03-25)
+
+
+### Bug Fixes
+
+* Dashes on snipd ([f1047a5](https://github.com/readwiseio/logseq-readwise-official-plugin/commit/f1047a5c3660218c73c154fd279fb0e418389970))
+
 ## [1.4.10](https://github.com/readwiseio/logseq-readwise-official-plugin/compare/v1.4.9...v1.4.10) (2024-03-25)
 
 
